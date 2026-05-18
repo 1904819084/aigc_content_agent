@@ -1,0 +1,54 @@
+.root,
+.section {
+  width: 100%;
+}
+
+.card {
+  border: 1px solid rgba(148, 163, 184, 0.1) !important;
+  border-radius: 18px !important;
+  background: rgba(2, 6, 23, 0.58) !important;
+
+  :global(.ant-card-head) {
+    min-height: 48px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  }
+
+  :global(.ant-card-head-title) {
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  :global(.ant-card-body) {
+    padding: 16px 18px;
+  }
+}
+
+.summaryItem {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.12);
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+}
+
+.jsonPanel {
+  margin-bottom: 0 !important;
+
+  pre {
+    overflow: auto;
+    margin: 0;
+    padding: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 18px;
+    background: #020617;
+    color: #cbd5e1;
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+}

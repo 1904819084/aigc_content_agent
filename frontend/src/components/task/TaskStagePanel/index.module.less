@@ -1,0 +1,57 @@
+.root,
+.content {
+  width: 100%;
+}
+
+.sectionCard {
+  :global(.ant-steps) {
+    overflow-x: auto;
+  }
+
+  :global(.ant-steps-item-title) {
+    white-space: nowrap;
+  }
+
+  :global(.ant-steps-item-icon) {
+    border: none !important;
+    background: transparent !important;
+  }
+
+  :global(.ant-steps-item-icon .ant-steps-icon) {
+    display: grid;
+    place-items: center;
+  }
+
+  :global(.ant-steps-item-finish .ant-steps-item-tail::after) {
+    background-color: rgba(34, 197, 94, 0.48) !important;
+  }
+
+  :global(.ant-steps-item-error .ant-steps-item-tail::after) {
+    background-color: rgba(244, 63, 94, 0.52) !important;
+  }
+
+  :global(.ant-steps-item-wait .ant-steps-item-tail::after),
+  :global(.ant-steps-item-process .ant-steps-item-tail::after) {
+    background-color: rgba(148, 163, 184, 0.2) !important;
+  }
+
+  :global(.ant-collapse) {
+    background: transparent !important;
+  }
+
+  :global(.ant-collapse > .ant-collapse-item) {
+    margin-bottom: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.12) !important;
+    border-radius: 18px !important;
+    background: rgba(15, 23, 42, 0.42);
+  }
+
+  :global(.ant-collapse > .ant-collapse-item:last-child) {
+    margin-bottom: 0;
+  }
+
+  :global(.ant-collapse .ant-collapse-header) {
+    align-items: center !important;
+  }
+}

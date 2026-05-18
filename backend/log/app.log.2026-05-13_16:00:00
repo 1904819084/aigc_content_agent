@@ -1,0 +1,86 @@
+INFO 2026-05-13 16:04:13,611 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:04:13,611 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:04:14,862 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3003
+INFO 2026-05-13 16:04:14,862 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-13 16:04:28,437 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:04:28,437 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:04:29,564 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-13 16:04:29,564 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3003
+INFO 2026-05-13 16:04:41,825 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:04:41,825 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:04:42,896 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3003
+INFO 2026-05-13 16:04:42,895 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-13 16:12:32,188 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:12:32,188 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:12:33,457 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-13 16:12:33,457 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3003
+INFO 2026-05-13 16:27:29,573 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:27:29,469 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-13 16:40:59,742 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:41:00,160 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:41:00,030 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3003
+INFO 2026-05-13 16:41:01,030 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-13 16:41:08,553 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:41:08,553 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+ERROR 2026-05-13 16:41:08,068 v1(7) ../node_modules/@gulux/application/lib/application.js:254 10.85.162.73 - - default - - [gulux]::UnhandledRejection Error: Cannot find module 'dotenv/config'
+Require stack:
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/config/env.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/agents/subagents/scriptGeneratingAgent.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/agents/nodes/scriptGeneratingNode.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/agents/taskGraph/createTaskGraph.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/services/taskService.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/controllers/task.ts
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/utils/compatible_require.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/configuration/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/loader/factory.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/loader/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@gulux/application/lib/core/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@gulux/application/lib/trigger.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@gulux/application/lib/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@gulux/gulux/lib/index.js
+- /Users/bytedance/Documents/trae_projects/agent/backend/.bootstrap.ts
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Function.Module._resolveFilename.sharedData.moduleResolveFilenameHook.installedValue (/Users/bytedance/Documents/trae_projects/agent/node_modules/@cspotcode/source-map-support/source-map-support.js:811:30)
+    at Function.Module._resolveFilename (/Users/bytedance/Documents/trae_projects/agent/node_modules/tsconfig-paths/src/register.ts:115:36)
+    at Function.Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/Users/bytedance/Documents/trae_projects/agent/backend/src/config/env.ts:1:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module.m._compile (/Users/bytedance/Documents/trae_projects/agent/node_modules/ts-node/src/index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+ERROR 2026-05-13 16:41:08,068 v1(7) ../node_modules/@gulux/application/lib/application.js:254 10.85.162.73 - - default - - [gulux]::UnhandledRejection Error: Cannot find module 'dotenv/config'
+Require stack:
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/config/env.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/agents/subagents/scriptGeneratingAgent.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/agents/nodes/scriptGeneratingNode.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/agents/taskGraph/createTaskGraph.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/services/taskService.ts
+- /Users/bytedance/Documents/trae_projects/agent/backend/src/controllers/task.ts
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/utils/compatible_require.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/configuration/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/loader/factory.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/loader/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@artus/core/lib/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@gulux/application/lib/core/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@gulux/application/lib/trigger.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@gulux/application/lib/index.js
+- /Users/bytedance/Documents/trae_projects/agent/node_modules/@gulux/gulux/lib/index.js
+- /Users/bytedance/Documents/trae_projects/agent/backend/.bootstrap.ts
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Function.Module._resolveFilename.sharedData.moduleResolveFilenameHook.installedValue (/Users/bytedance/Documents/trae_projects/agent/node_modules/@cspotcode/source-map-support/source-map-support.js:811:30)
+    at Function.Module._resolveFilename (/Users/bytedance/Documents/trae_projects/agent/node_modules/tsconfig-paths/src/register.ts:115:36)
+    at Function.Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/Users/bytedance/Documents/trae_projects/agent/backend/src/config/env.ts:1:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module.m._compile (/Users/bytedance/Documents/trae_projects/agent/node_modules/ts-node/src/index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+INFO 2026-05-13 16:41:31,208 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:41:31,208 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:41:32,342 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3003
+INFO 2026-05-13 16:41:32,342 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-13 16:41:47,732 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-13 16:41:47,653 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
