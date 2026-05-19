@@ -1,8 +1,8 @@
-import { getRequiredStageResult } from './stageAgentUtils';
+import { getStageResult } from '../../utils/getStageResult';
 
 export async function runQaReviewingAgent(task) {
   const brief = task.brief;
-  const timeline = getRequiredStageResult(task, 'editing');
+  const timeline = getStageResult(task, 'editing');
 
   const result = {
     summary: '基础质检通过，可进入人工审阅。',
@@ -36,4 +36,3 @@ export async function runQaReviewingAgent(task) {
     result,
   };
 }
-

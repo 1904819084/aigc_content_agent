@@ -1,8 +1,8 @@
-import { getRequiredStageResult } from './stageAgentUtils';
+import { getStageResult } from '../../utils/getStageResult';
 
 export async function runEditingAgent(task) {
   const brief = task.brief;
-  const clips = getRequiredStageResult(task, 'video_generating');
+  const clips = getStageResult(task, 'video_generating');
 
   const totalDuration = clips.reduce((sum, clip) => sum + clip.duration, 0);
   const result = {
@@ -35,4 +35,3 @@ export async function runEditingAgent(task) {
     result,
   };
 }
-

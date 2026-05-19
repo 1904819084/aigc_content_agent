@@ -1,5 +1,5 @@
 import { updateTaskStage, updateTaskStatus } from '../../domain/task/taskPipeline';
-import { createStageOutputDocument } from '../../utils/stageOutputDocument';
+import { createStageOutput } from '../../utils/createStageOutput';
 
 function setStageRunning(taskRepository, taskId, stageName) {
   const task = taskRepository.findById(taskId);
@@ -26,7 +26,7 @@ function setStageCompleted(taskRepository, taskId, stageName, outputData) {
     throw new Error('task_not_found');
   }
 
-  const output = createStageOutputDocument(stageName, outputData);
+  const output = createStageOutput(stageName, outputData);
   const finishedTask = taskRepository.save(
     updateTaskStage(task, stageName, {
       status: 'completed',

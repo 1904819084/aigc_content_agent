@@ -1,6 +1,7 @@
 export type TaskStageName =
   | 'script_generating'
   | 'storyboard_generating'
+  | 'image_prompt_generating'
   | 'image_generating'
   | 'video_generating'
   | 'editing'
@@ -31,6 +32,43 @@ export interface TaskBrief {
   videoPrompt: string;
 }
 
+export interface ScriptSection {
+  heading: string;
+  narration: string;
+}
+
+// 剧本生成结果类型
+export interface ScriptResult {
+  title: string;
+  hook: string;
+  positioning: string;
+  sections: ScriptSection[];
+  cta: string;
+}
+
+// 分镜脚本生成结果类型
+export interface StoryboardShotResult {
+  shotId: string;
+  duration: number;
+  shotType: string;
+  visual: string;
+  narration: string;
+  subtitle: string;
+  cameraMotion: string;
+}
+
+// 分镜图Prompt生成结果类型
+export interface ImagePromptGeneratingResult {
+  shotId: string;
+  imagePrompt: string;
+}
+
+// 分镜图生成结果类型
+export interface ImageGeneratingResult {
+  shotId: string;
+  image: string;
+}
+
 export interface TaskStage {
   name: TaskStageName;
   status: TaskStageStatus;
@@ -39,14 +77,12 @@ export interface TaskStage {
   error: string | null;
 }
 
-export interface TaskStageOutputDocument {
+export interface TaskStageOutput {
   stageName: TaskStageName;
   version: 'v1';
   generatedAt: string;
   input: Record<string, unknown>;
-  summary: Array<{ label: string; value: string }>;
-  metrics: Array<{ label: string; value: string | number }>;
-  result: unknown;
+  output: unknown;
 }
 
 export interface Task {
@@ -56,7 +92,7 @@ export interface Task {
   status: TaskStatus;
   currentStage: TaskStageName | null;
   stages: TaskStage[];
-  outputs: Partial<Record<TaskStageName, TaskStageOutputDocument>>;
+  outputs: Partial<Record<TaskStageName, TaskStageOutput>>;
   createdAt: string;
   updatedAt: string;
 }

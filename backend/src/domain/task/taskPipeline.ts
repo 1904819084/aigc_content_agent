@@ -3,6 +3,7 @@ import type { Task, TaskStage, TaskStageName, TaskStatus } from '../../types';
 export const TASK_STAGE_NAMES: TaskStageName[] = [
   'script_generating',
   'storyboard_generating',
+  'image_prompt_generating',
   'image_generating',
   'video_generating',
   'editing',

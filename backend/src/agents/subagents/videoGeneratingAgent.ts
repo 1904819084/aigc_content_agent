@@ -1,19 +1,20 @@
-import { getRequiredStageResult } from './stageAgentUtils';
+import { getStageResult } from '../../utils/getStageResult';
 
 export async function runVideoGeneratingAgent(task) {
-  const storyboard = getRequiredStageResult(task, 'storyboard_generating');
+  const images = getStageResult(task, 'image_generating');
 
-  const result = storyboard.map((shot) => ({
-    shotId: shot.shotId,
-    prompt: `${shot.visual}，镜头运动：${shot.cameraMotion}，时长${shot.duration}秒`,
-    duration: shot.duration,
+  const result = images.map((image) => ({
+    shotId: image.shotId,
+    prompt: image.imagePrompt,
+    imageURL: image.imageURL,
+    duration: 5,
     status: 'ready',
-    previewUrl: `https://example.com/mock-video/${shot.shotId}.mp4`,
+    previewUrl: `https://example.com/mock-video/${image.shotId}.mp4`,
   }));
 
   return {
     input: {
-      storyboardShotCount: storyboard.length,
+      imageCount: images.length,
     },
     summary: result.map((video) => ({
       label: video.shotId,
@@ -26,4 +27,3 @@ export async function runVideoGeneratingAgent(task) {
     result,
   };
 }
-

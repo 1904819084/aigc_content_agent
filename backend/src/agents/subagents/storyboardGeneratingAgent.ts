@@ -1,33 +1,87 @@
-import { getRequiredStageResult } from './stageAgentUtils';
+import { fornaxExecute } from '../../fornax/llm';
+import type { ScriptResult, StoryboardShotResult, Task } from '../../types';
+import { tryParseAgentJson } from '../../utils/agentOutput';
+import { AppError, toAppError } from '../../utils/appError';
+import { getStageResult } from '../../utils/getStageResult';
 
-export async function runStoryboardGeneratingAgent(task) {
-  const brief = task.brief;
-  const script = getRequiredStageResult(task, 'script_generating');
+const PROMPT_KEY = 'demo.stotyboard_generate_agent.prompt';
 
-  const result = script.sections.map((section, index) => ({
-    shotId: `shot_${index + 1}`,
-    duration: index === 0 ? 4 : 6,
-    shotType: index === 0 ? '特写' : '中景',
-    visual: `围绕商品“${brief.productName}”设计电商带货画面，突出${section.heading}`,
-    narration: section.narration,
-    subtitle: `${section.heading}：${brief.productName}`,
-    cameraMotion: index === 0 ? '快速推进' : '轻微平移',
-  }));
-
-  return {
-    input: {
-      productName: brief.productName,
-      scriptSectionCount: script.sections.length,
-    },
-    summary: result.map((shot) => ({
-      label: shot.shotId,
-      value: `${shot.shotType} ${shot.duration} 秒，${shot.cameraMotion}`,
-    })),
-    metrics: [
-      { label: '镜头数量', value: result.length },
-      { label: '预计总时长', value: `${result.reduce((sum, shot) => sum + shot.duration, 0)} 秒` },
-    ],
-    result,
-  };
+function isStoryboardShot(value: unknown): value is StoryboardShotResult {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.shotId === 'string' &&
+    typeof record.duration === 'number' &&
+    Number.isFinite(record.duration) &&
+    typeof record.shotType === 'string' &&
+    typeof record.visual === 'string' &&
+    typeof record.narration === 'string' &&
+    typeof record.subtitle === 'string' &&
+    typeof record.cameraMotion === 'string'
+  );
 }
 
+
+function buildStoryboardResultFromJson(value: unknown): StoryboardShotResult[] | null {
+  const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
+  const nestedShots = Array.isArray(record?.shots) ? record.shots : null;
+  const shotsValue = Array.isArray(value)
+    ? value.filter(isStoryboardShot)
+    : nestedShots
+      ? nestedShots.filter(isStoryboardShot)
+      : [];
+
+  if (shotsValue.length === 0) {
+    return null;
+  }
+
+  return shotsValue.map((shot, index) => ({
+    shotId: shot.shotId.trim() || `shot_${index + 1}`,
+    duration: Math.max(1, Math.round(shot.duration)),
+    shotType: shot.shotType.trim(),
+    visual: shot.visual.trim(),
+    narration: shot.narration.trim(),
+    subtitle: shot.subtitle.trim(),
+    cameraMotion: shot.cameraMotion.trim(),
+  }));
+}
+
+// 分镜脚本生成agent
+export async function runStoryboardGeneratingAgent(task: Task) {
+  const script = getStageResult(task, 'script_generating') as ScriptResult;
+
+  try {
+    const response = await fornaxExecute({
+      promptKey: PROMPT_KEY,
+      variables: {
+        video_script: script,
+      },
+      callOptions: {},
+    });
+
+    if (!response.ok || !response.text) {
+      throw new AppError(
+        typeof response.error === 'string' && response.error ? response.error : 'fornax_execute_failed',
+        502,
+      );
+    }
+
+    const result =
+      buildStoryboardResultFromJson(tryParseAgentJson(response.text)) 
+
+    if (result.length === 0) {
+      throw new AppError('fornax_storyboard_result_invalid_schema', 502);
+    }
+
+    return {
+      input: {
+        script,
+      },
+      output:result,
+    };
+  } catch (error) {
+    throw toAppError(error, 'fornax_storyboard_generating_failed', 502);
+  }
+}

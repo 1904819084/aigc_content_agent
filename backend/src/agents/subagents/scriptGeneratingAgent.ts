@@ -1,25 +1,11 @@
 import { fornaxExecute } from '../../fornax/llm';
-import { Task } from '../../types';
-import { pickNonEmptyString, tryParseAgentJson } from '../../utils/agentOutput';
+import type { ScriptResult, ScriptSection, Task } from '../../types';
+import { tryParseAgentJson } from '../../utils/agentOutput';
 import { AppError, toAppError } from '../../utils/appError';
 
 const PROMPT_KEY = 'demo.script_generate_agent.prompt';
 //不指定version会默认选择最新版本
 // const PROMPT_VERSION = '0.0.1';
-
-// 剧本生成结果类型
-type ScriptResult = {
-  title: string;
-  hook: string;
-  positioning: string;
-  sections: ScriptSection[];
-  cta: string;
-};
-
-type ScriptSection = {
-  heading: string;
-  narration: string;
-};
 
 function isScriptSection(value: unknown): value is ScriptSection {
   if (!value || typeof value !== 'object') {
@@ -36,10 +22,16 @@ function buildScriptResultFromJson(task: Task, value: unknown): ScriptResult | n
   const brief = task.brief;
   const record = value as Record<string, unknown>;
   const sectionsValue = Array.isArray(record.sections) ? record.sections.filter(isScriptSection) : [];
-  const title = pickNonEmptyString(record, 'title') ?? `${brief.productName}带货短视频剧本`;
-  const hook = pickNonEmptyString(record, 'hook');
-  const positioning = pickNonEmptyString(record, 'positioning');
-  const cta = pickNonEmptyString(record, 'cta');
+  const title =
+    typeof record.title === 'string' && record.title.trim()
+      ? record.title.trim()
+      : `${brief.productName}带货短视频剧本`;
+  const hook = typeof record.hook === 'string' && record.hook.trim() ? record.hook.trim() : null;
+  const positioning =
+    typeof record.positioning === 'string' && record.positioning.trim()
+      ? record.positioning.trim()
+      : null;
+  const cta = typeof record.cta === 'string' && record.cta.trim() ? record.cta.trim() : null;
   if (!hook || !positioning || !cta || sectionsValue.length === 0) {
     return null;
   }
@@ -55,6 +47,7 @@ function buildScriptResultFromJson(task: Task, value: unknown): ScriptResult | n
   };
 }
 
+// 短视频剧本生成agent
 export async function runScriptGeneratingAgent(task: Task) {
   const brief = task.brief;
   try {

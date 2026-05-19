@@ -1,8 +1,40 @@
 import { loadFornaxSdk } from './fornaxSdk';
 import { getFornaxAuthOptions } from './fornaxAuth';
 import { stripMarkdownCodeFence } from '../utils/agentOutput';
+import { sanitizeHttpUrl } from '../utils/url';
 
-// 标准化Fornax SDK返回的文本结果
+//  标准化生图模型返回的结果
+function normalizeMessageParts(parts: unknown) {
+  if (!Array.isArray(parts)) {
+    return '';
+  }
+
+  return parts
+    .map((part) => {
+      if (!part || typeof part !== 'object') {
+        return '';
+      }
+
+      const record = part as {
+        type?: unknown;
+        text?: unknown;
+        image_url?: { url?: unknown };
+      };
+
+      if (record.type === 'text' && typeof record.text === 'string') {
+        return record.text;
+      }
+
+      if (record.type === 'image_url' && typeof record.image_url?.url === 'string') {
+        return sanitizeHttpUrl(record.image_url.url);
+      }
+
+      return '';
+    })
+    .join('');
+}
+
+// 标准化文本模型返回的结果
 function normalizeTextResult(result: unknown) {
   if (!result) {
     return '';
@@ -27,7 +59,15 @@ function normalizeTextResult(result: unknown) {
   const firstMessage = firstChoice?.message;
 
   if (typeof firstMessage?.content === 'string') {
-    return stripMarkdownCodeFence(firstMessage.content);
+    const content = firstMessage.content.trim();
+    if (content) {
+      return stripMarkdownCodeFence(content);
+    }
+  }
+
+  const normalizedPartsText = normalizeMessageParts(firstMessage?.parts);
+  if (normalizedPartsText) {
+    return stripMarkdownCodeFence(normalizedPartsText);
   }
 
   return '';
