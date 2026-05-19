@@ -7,3 +7,4 @@ backend/runtime-data
 backend/.gulux
 backend/.bootstrap.ts
 log
+backend/log/
