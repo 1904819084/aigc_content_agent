@@ -4,6 +4,7 @@ import { createTaskGraph } from '../agents/taskGraph/createTaskGraph';
 import { TaskPipelineRunner } from '../agents/taskPipelineRunner';
 import { createTaskRepository } from '../data/createTaskRepository';
 import type { TaskBrief } from '../types';
+import { AppError } from '../utils/appError';
 
 const taskRepository = createTaskRepository();
 const taskGraph = createTaskGraph(taskRepository);
@@ -19,7 +20,7 @@ export default class TaskService {
     const task = taskRepository.findById(taskId);
 
     if (!task) {
-      throw Object.assign(new Error('task_not_found'), { statusCode: 404 });
+      throw new AppError('task_not_found', 404);
     }
 
     return task;
@@ -33,7 +34,7 @@ export default class TaskService {
     const task = this.getTaskById(taskId);
 
     if (task.status !== 'pending' && task.status !== 'failed') {
-      throw Object.assign(new Error('task_already_started'), { statusCode: 400 });
+      throw new AppError('task_already_started', 400);
     }
 
     const resetTask = taskRepository.save(resetTaskForRun(task));

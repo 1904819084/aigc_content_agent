@@ -1,5 +1,6 @@
 import { GuluXMiddleware, Middleware, type NextFunction } from '@gulux/gulux';
 import { Next, Res, type HTTPResponse } from '@gulux/gulux/application-http';
+import { toAppError } from '../utils/appError';
 
 @Middleware()
 export default class GlobalExceptionMiddleware extends GuluXMiddleware {
@@ -8,16 +9,11 @@ export default class GlobalExceptionMiddleware extends GuluXMiddleware {
       await next();
     } catch (error) {
       console.error('[backend-error]', error);
-      const currentError = error as Error;
-      const currentErrorWithStatusCode = error as Error & { statusCode?: number };
-      const statusCode =
-        typeof currentErrorWithStatusCode.statusCode === 'number'
-          ? currentErrorWithStatusCode.statusCode
-          : 500;
+      const appError = toAppError(error);
       res.body = {
-        message: currentError.message || 'internal_server_error',
+        message: appError.message || 'internal_server_error',
       };
-      res.status = statusCode;
+      res.status = appError.statusCode;
     }
   }
 }

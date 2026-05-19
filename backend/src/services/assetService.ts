@@ -1,6 +1,7 @@
 import { Injectable } from '@gulux/gulux';
 import { createAssetRepository } from '../data/createAssetRepository';
 import type { UploadedAssetFile } from '../types';
+import { AppError } from '../utils/appError';
 
 const assetRepository = createAssetRepository();
 
@@ -8,7 +9,7 @@ const assetRepository = createAssetRepository();
 export default class AssetService {
   public createAssetsFromUploadedFiles(files: UploadedAssetFile[]) {
     if (files.length === 0) {
-      throw Object.assign(new Error('asset_files_required'), { statusCode: 400 });
+      throw new AppError('asset_files_required', 400);
     }
 
     const assets = files.map((file) => {

@@ -1,6 +1,7 @@
 import { Inject } from '@gulux/gulux';
 import { Body, Controller, Get, Param, Post, Res, type HTTPResponse } from '@gulux/gulux/application-http';
 import TaskService from '../services/taskService';
+import { AppError } from '../utils/appError';
 import { isTaskBriefValid, normalizeTaskBrief } from '../utils/taskValidator';
 
 @Controller({ path: '/tasks' })
@@ -23,7 +24,7 @@ export default class TaskController {
   @Post('')
   public createTask(@Body() body: unknown, @Res() res: HTTPResponse) {
     if (!isTaskBriefValid(body)) {
-      throw Object.assign(new Error('invalid_task_payload'), { statusCode: 400 });
+      throw new AppError('invalid_task_payload', 400);
     }
 
     const task = this.taskService.createTask(normalizeTaskBrief(body));

@@ -1,0 +1,21 @@
+INFO 2026-05-19 12:01:39,202 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:01:40,264 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:01:46,411 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:01:46,253 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:01:53,006 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:01:53,745 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:02:15,869 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:02:15,723 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:06:22,985 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:06:22,878 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:10:23,296 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:10:23,141 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:10:29,427 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:10:29,041 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:11:59,428 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:11:59,416 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:12:01,843 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:12:01,517 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001
+INFO 2026-05-19 12:12:10,708 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:12:12,525 v1(7) ../node_modules/@gulux/application/lib/application.js:166 10.85.162.73 - - default - - GuluX will use @gulux/gulux as default framework
+INFO 2026-05-19 12:12:12,227 v1(7) ../node_modules/@gulux/application-http/lib/protocol_app.js:114 10.85.162.73 - - default - - [gulux] server started at port: 3001

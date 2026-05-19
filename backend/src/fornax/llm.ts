@@ -1,19 +1,9 @@
 import { loadFornaxSdk } from './fornaxSdk';
 import { getFornaxAuthOptions } from './fornaxAuth';
-
-// 移除Markdown代码围栏
-function stripMarkdownCodeFence(text: string) {
-  const trimmed = text.trim();
-  const codeFenceMatch = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-  if (codeFenceMatch) {
-    return codeFenceMatch[1].trim();
-  }
-
-  return trimmed;
-}
+import { stripMarkdownCodeFence } from '../utils/agentOutput';
 
 // 标准化Fornax SDK返回的文本结果
-function normalizeTextResult(result) {
+function normalizeTextResult(result: unknown) {
   if (!result) {
     return '';
   }
@@ -22,11 +12,17 @@ function normalizeTextResult(result) {
     return stripMarkdownCodeFence(result);
   }
 
-  if (typeof result.text === 'string') {
-    return stripMarkdownCodeFence(result.text);
+  if (typeof result !== 'object') {
+    return '';
   }
 
-  const maybeChoices = result.choices;
+  const record = result as { text?: unknown; choices?: unknown };
+
+  if (typeof record.text === 'string') {
+    return stripMarkdownCodeFence(record.text);
+  }
+
+  const maybeChoices = record.choices;
   const firstChoice = Array.isArray(maybeChoices) ? maybeChoices[0] : null;
   const firstMessage = firstChoice?.message;
 
