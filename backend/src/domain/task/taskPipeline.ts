@@ -5,6 +5,7 @@ export const TASK_STAGE_NAMES: TaskStageName[] = [
   'storyboard_generating',
   'image_prompt_generating',
   'image_generating',
+  'video_prompt_generating',
   'video_generating',
   'editing',
   'qa_reviewing',

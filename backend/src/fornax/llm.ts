@@ -3,7 +3,7 @@ import { getFornaxAuthOptions } from './fornaxAuth';
 import { stripMarkdownCodeFence } from '../utils/agentOutput';
 import { sanitizeHttpUrl } from '../utils/url';
 
-//  标准化生图模型返回的结果
+//  标准化图片/视频生成模型返回的结果
 function normalizeMessageParts(parts: unknown) {
   if (!Array.isArray(parts)) {
     return '';
@@ -19,6 +19,7 @@ function normalizeMessageParts(parts: unknown) {
         type?: unknown;
         text?: unknown;
         image_url?: { url?: unknown };
+        video_url?: { url?: unknown };
       };
 
       if (record.type === 'text' && typeof record.text === 'string') {
@@ -27,6 +28,10 @@ function normalizeMessageParts(parts: unknown) {
 
       if (record.type === 'image_url' && typeof record.image_url?.url === 'string') {
         return sanitizeHttpUrl(record.image_url.url);
+      }
+
+      if (record.type === 'video_url' && typeof record.video_url?.url === 'string') {
+        return sanitizeHttpUrl(record.video_url.url);
       }
 
       return '';

@@ -3,6 +3,7 @@ export type TaskStageName =
   | 'storyboard_generating'
   | 'image_prompt_generating'
   | 'image_generating'
+  | 'video_prompt_generating'
   | 'video_generating'
   | 'editing'
   | 'qa_reviewing';
@@ -67,6 +68,19 @@ export interface ImagePromptGeneratingResult {
 export interface ImageGeneratingResult {
   shotId: string;
   image: string;
+}
+
+// 分镜视频Prompt生成结果类型
+export interface VideoPromptGeneratingResult {
+  shotId: string;
+  videoPrompt: string;
+}
+
+// 分镜视频生成结果类型
+export interface VideoGeneratingResult {
+  shotId: string;
+  video: string;
+  duration: number;
 }
 
 export interface TaskStage {
