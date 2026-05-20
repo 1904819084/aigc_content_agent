@@ -39,6 +39,7 @@ function buildImagePromptResultFromJson(value: unknown): ImagePromptGeneratingRe
   }));
 }
 
+// 分镜图提示词生成agent
 export async function runImagePromptGeneratingAgent(task: Task) {
   const storyboard = getStageResult<StoryboardShotResult[]>(task, 'storyboard_generating');
 

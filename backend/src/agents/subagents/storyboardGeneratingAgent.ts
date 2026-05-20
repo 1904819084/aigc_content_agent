@@ -56,7 +56,7 @@ export async function runStoryboardGeneratingAgent(task: Task) {
     const response = await fornaxExecute({
       promptKey: PROMPT_KEY,
       variables: {
-        video_script: script,
+        video_script: JSON.stringify(script, null, 2),
       },
       callOptions: {},
     });

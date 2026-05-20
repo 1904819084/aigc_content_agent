@@ -83,6 +83,21 @@ export interface VideoGeneratingResult {
   duration: number;
 }
 
+
+// 分镜视频混剪成片结果类型
+export interface EditingResult {
+  video: string;
+}
+
+
+// 短视频质检结果类型
+export interface QaReviewResult {
+  result: string;
+  legal: string;
+  unlegal:string;
+  suggestion: string;
+}
+
 export interface TaskStage {
   name: TaskStageName;
   status: TaskStageStatus;

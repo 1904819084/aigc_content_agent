@@ -1,38 +1,61 @@
+import { fornaxExecute } from '../../fornax/llm';
+import type { EditingResult, QaReviewResult, Task } from '../../types';
+import { tryParseAgentJson } from '../../utils/agentOutput';
+import { AppError, toAppError } from '../../utils/appError';
 import { getStageResult } from '../../utils/getStageResult';
 
-export async function runQaReviewingAgent(task) {
-  const brief = task.brief;
-  const timeline = getStageResult(task, 'editing');
+const PROMPT_KEY = 'demo.qa_review_agent.prompt';
 
-  const result = {
-    summary: '基础质检通过，可进入人工审阅。',
-    checks: [
-      { name: '视频时长', result: `${timeline.totalDuration}秒，符合短视频范围` },
-      { name: '商品聚焦', result: `画面主线已围绕 ${brief.productName} 的卖点展开` },
-      { name: '商品素材', result: `当前任务已接入 ${brief.productImages?.length ?? 0} 张商品图` },
-      {
-        name: 'Prompt 适配',
-        result: brief.videoPrompt
-          ? `已融合用户自定义 Prompt：${brief.videoPrompt}`
-          : '未提供额外 Prompt，已按默认带货策略生成',
-      },
-      { name: '风险提示', result: '当前为 mock 结果，正式接真实模型后需补充内容安全审核' },
-    ],
-  };
 
+function buildQaReviewResultFromJson(value: unknown): QaReviewResult | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  const result = typeof record.result === 'string' && record.result.trim() ? record.result.trim() : null;
+  const legal = typeof record.legal === 'string' && record.legal.trim() ? record.legal.trim() : null;
+  const unlegal = typeof record.unlegal === 'string' && record.unlegal.trim() ? record.unlegal.trim() : null;
+  const suggestion = typeof record.suggestion === 'string' && record.suggestion.trim() ? record.suggestion.trim() : null;
+  if (!result || !legal || !unlegal || !suggestion) {
+    return null;
+  }
   return {
-    input: {
-      productName: brief.productName,
-      totalDuration: `${timeline.totalDuration} 秒`,
-    },
-    summary: [
-      { label: '质检结论', value: result.summary },
-      ...result.checks.map((check) => ({ label: check.name, value: check.result })),
-    ],
-    metrics: [
-      { label: '检查项数量', value: result.checks.length },
-      { label: '任务素材数', value: brief.productImages?.length ?? 0 },
-    ],
     result,
+    legal,
+    unlegal,
+    suggestion,
   };
+}
+
+// 分镜视频质检agent
+export async function runQaReviewingAgent(task: Task) {
+  const video = getStageResult<EditingResult>(task, 'editing');
+
+  try {
+    const response = await fornaxExecute({
+      promptKey: PROMPT_KEY,
+      variables: {
+        video: video,
+      },
+      callOptions: {},
+    });
+
+    const result =
+      response.ok && response.text
+        ? buildQaReviewResultFromJson(tryParseAgentJson(response.text))
+        : null;
+
+    if (!result) {
+      throw new AppError('fornax_qa_review_result_invalid_schema', 502);
+    }
+
+    return {
+      input: {
+        video,
+      },
+      output: result,
+    };
+  } catch (error) {
+    throw toAppError(error, 'fornax_qa_review_failed', 502);
+  }
 }

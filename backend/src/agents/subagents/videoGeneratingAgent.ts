@@ -68,6 +68,7 @@ function buildVideoGeneratingResultFromJson(value: unknown): VideoGeneratingResu
   });
 }
 
+// 分镜视频生成agent
 export async function runVideoGeneratingAgent(task: Task) {
   const imageList = getStageResult<ImageGeneratingResult[]>(task, 'image_generating');
   const videoPromptList = getStageResult<VideoPromptGeneratingResult[]>(task, 'video_prompt_generating');

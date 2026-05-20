@@ -51,6 +51,7 @@ function buildImageGeneratingResultFromJson(value: unknown): ImageGeneratingResu
   });
 }
 
+// 分镜图生成agent
 export async function runImageGeneratingAgent(task: Task) {
   const imagePromptList = getStageResult<ImagePromptGeneratingResult[]>(task, 'image_prompt_generating');
 
