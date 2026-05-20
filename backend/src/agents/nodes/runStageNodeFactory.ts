@@ -1,9 +1,8 @@
 import type { Task, TaskRepository, TaskStageName } from '../../types';
-import { updateTaskStage, updateTaskStatus } from '../../domain/task/taskPipeline';
 import { createStageOutput } from '../../utils/createStageOutput';
 
 type TaskGraphState = {
-  taskId: string;
+  _id: string;
   currentStage: TaskStageName | null;
   error: string | null;
 };
@@ -13,75 +12,43 @@ type StageAgent = (task: Task) => Promise<{
   output: unknown;
 }>;
 
-async function setStageRunning(taskRepository: TaskRepository, taskId: string, stageName: TaskStageName) {
-  const task = await taskRepository.findById(taskId);
+async function setStageRunning(taskRepository: TaskRepository, _id: string, stageName: TaskStageName) {
+  const task = await taskRepository.markStageRunning(_id, stageName);
 
   if (!task) {
     throw new Error('task_not_found');
   }
-
-  const runningTask = await taskRepository.save(updateTaskStatus(task, 'running', stageName));
-  await taskRepository.save(
-    updateTaskStage(runningTask, stageName, {
-      status: 'running',
-      startedAt: new Date().toISOString(),
-      finishedAt: null,
-      error: null,
-    }),
-  );
 }
 
 async function setStageCompleted(
   taskRepository: TaskRepository,
-  taskId: string,
+  _id: string,
   stageName: TaskStageName,
   outputData: Awaited<ReturnType<StageAgent>>,
 ) {
-  const task = await taskRepository.findById(taskId);
+  const output = createStageOutput(stageName, outputData);
+  const task = await taskRepository.markStageCompleted(_id, stageName, output);
 
   if (!task) {
     throw new Error('task_not_found');
   }
-
-  const output = createStageOutput(stageName, outputData);
-  const finishedTask = await taskRepository.save(
-    updateTaskStage(task, stageName, {
-      status: 'completed',
-      finishedAt: new Date().toISOString(),
-      error: null,
-    }),
-  );
-
-  await taskRepository.save({
-    ...finishedTask,
-    outputs: {
-      ...finishedTask.outputs,
-      [stageName]: output,
-    },
-  });
 }
 
 async function setStageFailed(
   taskRepository: TaskRepository,
-  taskId: string,
+  _id: string,
   stageName: TaskStageName,
   error: unknown,
 ) {
-  const task = await taskRepository.findById(taskId);
+  const task = await taskRepository.markStageFailed(
+    _id,
+    stageName,
+    error instanceof Error ? error.message : 'unknown_error',
+  );
 
   if (!task) {
     return;
   }
-
-  const stageFailedTask = await taskRepository.save(
-    updateTaskStage(task, stageName, {
-      status: 'failed',
-      finishedAt: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'unknown_error',
-    }),
-  );
-
-  await taskRepository.save(updateTaskStatus(stageFailedTask, 'failed', stageName));
 }
 
 export function createRunStageNode(
@@ -90,11 +57,11 @@ export function createRunStageNode(
   stageAgent: StageAgent,
 ) {
   return async (state: TaskGraphState) => {
-    const taskId = state.taskId;
+    const _id = state._id;
 
     try {
-      await setStageRunning(taskRepository, taskId, stageName);
-      const task = await taskRepository.findById(taskId);
+      await setStageRunning(taskRepository, _id, stageName);
+      const task = await taskRepository.findById(_id);
 
       if (!task) {
         throw new Error('task_not_found');
@@ -105,14 +72,14 @@ export function createRunStageNode(
       }
 
       const outputData = await stageAgent(task);
-      await setStageCompleted(taskRepository, taskId, stageName, outputData);
+      await setStageCompleted(taskRepository, _id, stageName, outputData);
 
       return {
         currentStage: stageName,
         error: null,
       };
     } catch (error) {
-      await setStageFailed(taskRepository, taskId, stageName, error);
+      await setStageFailed(taskRepository, _id, stageName, error);
       throw error instanceof Error ? error : new Error('unknown_error');
     }
   };

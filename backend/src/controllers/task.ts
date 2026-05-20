@@ -21,13 +21,13 @@ export default class TaskController {
 
   @Get('')
   public async listTasks(
-    @Query('taskId') taskId?: string,
+    @Query('_id') _id?: string,
     @Query('productName') productName?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     const query: TaskListQuery = {
-      taskId,
+      _id,
       productName,
       startDate,
       endDate,
@@ -38,9 +38,9 @@ export default class TaskController {
     };
   }
 
-  @Get('/:taskId')
-  public getTaskById(@Param('taskId') taskId: string) {
-    return this.taskService.getTaskById(taskId);
+  @Get('/:_id')
+  public getTaskById(@Param('_id') _id: string) {
+    return this.taskService.getTaskById(_id);
   }
 
   @Post('')
@@ -54,8 +54,8 @@ export default class TaskController {
     return task;
   }
 
-  @Post('/:taskId/run')
-  public runTask(@Param('taskId') taskId: string) {
-    return this.taskService.runTask(taskId);
+  @Post('/:_id/run')
+  public runTask(@Param('_id') _id: string) {
+    return this.taskService.runTask(_id);
   }
 }

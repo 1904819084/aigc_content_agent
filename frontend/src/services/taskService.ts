@@ -2,7 +2,7 @@ import { request } from './http';
 import type { Task, TaskBrief } from '../types';
 
 export interface FetchTasksParams {
-  taskId?: string;
+  _id?: string;
   productName?: string;
   startDate?: string;
   endDate?: string;
@@ -14,8 +14,8 @@ export async function fetchTasks(params?: FetchTasksParams) {
   });
 }
 
-export async function fetchTask(taskId: string) {
-  return request<Task>(`/api/tasks/${taskId}`);
+export async function fetchTask(_id: string) {
+  return request<Task>(`/api/tasks/${_id}`);
 }
 
 export async function createTask(brief: TaskBrief) {
@@ -25,8 +25,8 @@ export async function createTask(brief: TaskBrief) {
   });
 }
 
-export async function runTask(taskId: string) {
-  return request<Task>(`/api/tasks/${taskId}/run`, {
+export async function runTask(_id: string) {
+  return request<Task>(`/api/tasks/${_id}/run`, {
     method: 'POST',
   });
 }

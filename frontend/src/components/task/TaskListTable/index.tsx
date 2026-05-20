@@ -22,8 +22,8 @@ export function TaskListTable(props: TaskListTableProps) {
   const columns: ColumnsType<Task> = [
     {
       title: '任务 ID',
-      dataIndex: 'id',
-      key: 'id',
+      dataIndex: '_id',
+      key: '_id',
       width: 220,
       render: (value: string) => <Text className={styles.taskId}>{value}</Text>,
     },
@@ -81,7 +81,7 @@ export function TaskListTable(props: TaskListTableProps) {
       fixed: 'right',
       render: (_, task) => {
         return (
-          <Link to={`/tasks/${task.id}`}>
+          <Link to={`/tasks/${task._id}`}>
             <Button type="link" icon={<EyeOutlined />} className={styles.detailLinkButton}>
               查看详情
             </Button>
@@ -93,7 +93,7 @@ export function TaskListTable(props: TaskListTableProps) {
 
   return (
     <Table
-      rowKey="id"
+      rowKey="_id"
       className={styles.table}
       columns={columns}
       dataSource={tasks}

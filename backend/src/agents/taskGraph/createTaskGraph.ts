@@ -1,4 +1,5 @@
 import { END, START, StateGraph } from '@langchain/langgraph';
+import type { TaskRepository } from '../../types';
 import { createEditingNode } from '../nodes/editingNode';
 import { createImageGeneratingNode } from '../nodes/imageGeneratingNode';
 import { createImagePromptGeneratingNode } from '../nodes/imagePromptGeneratingNode';
@@ -20,7 +21,7 @@ const TASK_GRAPH_NODE = {
   QaReviewing: 'qa_reviewing_node',
 };
 
-export function createTaskGraph(taskRepository) {
+export function createTaskGraph(taskRepository: TaskRepository) {
   return new StateGraph(TaskGraphState)
     .addNode(TASK_GRAPH_NODE.ScriptGenerating, createScriptGeneratingNode(taskRepository))
     .addNode(TASK_GRAPH_NODE.StoryboardGenerating, createStoryboardGeneratingNode(taskRepository))
@@ -32,10 +33,15 @@ export function createTaskGraph(taskRepository) {
     .addNode(TASK_GRAPH_NODE.QaReviewing, createQaReviewingNode(taskRepository))
     .addEdge(START, TASK_GRAPH_NODE.ScriptGenerating)
     .addEdge(TASK_GRAPH_NODE.ScriptGenerating, TASK_GRAPH_NODE.StoryboardGenerating)
+    // Storyboard 产出后，并发分叉生成分镜图提示词和分镜视频提示词。
     .addEdge(TASK_GRAPH_NODE.StoryboardGenerating, TASK_GRAPH_NODE.ImagePromptGenerating)
+    .addEdge(TASK_GRAPH_NODE.StoryboardGenerating, TASK_GRAPH_NODE.VideoPromptGenerating)
     .addEdge(TASK_GRAPH_NODE.ImagePromptGenerating, TASK_GRAPH_NODE.ImageGenerating)
-    .addEdge(TASK_GRAPH_NODE.ImageGenerating, TASK_GRAPH_NODE.VideoPromptGenerating)
-    .addEdge(TASK_GRAPH_NODE.VideoPromptGenerating, TASK_GRAPH_NODE.VideoGenerating)
+    // 视频生成依赖分镜图和分镜视频提示词双输入，必须等待两条分支都完成。
+    .addEdge(
+      [TASK_GRAPH_NODE.ImageGenerating, TASK_GRAPH_NODE.VideoPromptGenerating],
+      TASK_GRAPH_NODE.VideoGenerating,
+    )
     .addEdge(TASK_GRAPH_NODE.VideoGenerating, TASK_GRAPH_NODE.Editing)
     .addEdge(TASK_GRAPH_NODE.Editing, TASK_GRAPH_NODE.QaReviewing)
     .addEdge(TASK_GRAPH_NODE.QaReviewing, END)

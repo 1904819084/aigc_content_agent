@@ -14,7 +14,7 @@ export default class AssetService {
 
     const assets = files.map((file) => {
       return {
-        id: `asset_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        _id: `asset_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         name: file.originalname,
         mimeType: file.mimetype,
         size: file.size,

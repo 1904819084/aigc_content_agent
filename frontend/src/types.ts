@@ -1,7 +1,7 @@
 import type { TaskStageName, TaskStageStatus, TaskStatus } from './constants/task';
 
 export interface AssetResource {
-  id: string;
+  _id: string;
   name: string;
   mimeType: string;
   size: number;
@@ -32,7 +32,7 @@ export interface TaskStageOutput {
 }
 
 export interface Task {
-  id: string;
+  _id: string;
   name: string;
   brief: TaskBrief;
   status: TaskStatus;

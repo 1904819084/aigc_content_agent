@@ -4,8 +4,8 @@ import type { AssetResource, TaskBrief } from '../types';
 export function isTaskAssetValid(asset: unknown): asset is AssetResource {
   const currentAsset = asset as AssetResource | null;
   return (
-    typeof currentAsset?.id === 'string' &&
-    currentAsset.id.trim().length > 0 &&
+    typeof currentAsset?._id === 'string' &&
+    currentAsset._id.trim().length > 0 &&
     typeof currentAsset.name === 'string' &&
     currentAsset.name.trim().length > 0 &&
     typeof currentAsset.mimeType === 'string' &&
@@ -41,7 +41,7 @@ export function normalizeTaskBrief(payload: TaskBrief): TaskBrief {
     productName: payload.productName.trim(),
     productImages: Array.isArray(payload.productImages)
       ? payload.productImages.slice(0, 3).map((item) => ({
-          id: item.id.trim(),
+          _id: item._id.trim(),
           name: item.name.trim(),
           mimeType: item.mimeType.trim(),
           size: item.size,

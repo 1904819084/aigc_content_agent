@@ -12,7 +12,7 @@ export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed';
 export type TaskStageStatus = 'pending' | 'running' | 'completed' | 'failed';
 
 export interface AssetResource {
-  id: string;
+  _id: string;
   name: string;
   mimeType: string;
   size: number;
@@ -34,7 +34,7 @@ export interface TaskBrief {
 }
 
 export interface TaskListQuery {
-  taskId?: string;
+  _id?: string;
   productName?: string;
   startDate?: string;
   endDate?: string;
@@ -122,7 +122,7 @@ export interface TaskStageOutput {
 }
 
 export interface Task {
-  id: string;
+  _id: string;
   name: string;
   brief: TaskBrief;
   status: TaskStatus;
@@ -135,8 +135,11 @@ export interface Task {
 
 export interface TaskRepository {
   list(): Promise<Task[]>;
-  findById(taskId: string): Promise<Task | null>;
+  findById(_id: string): Promise<Task | null>;
   save(task: Task): Promise<Task>;
+  markStageRunning(_id: string, stageName: TaskStageName): Promise<Task | null>;
+  markStageCompleted(_id: string, stageName: TaskStageName, output: TaskStageOutput): Promise<Task | null>;
+  markStageFailed(_id: string, stageName: TaskStageName, errorMessage: string): Promise<Task | null>;
 }
 
 export interface AssetRepository {

@@ -5,7 +5,7 @@ export function createTaskEntity(brief: TaskBrief): Task {
   const timestamp = Date.now();
 
   return {
-    id: `task_${timestamp}`,
+    _id: `task_${timestamp}`,
     name: brief.productName,
     brief,
     status: 'pending',

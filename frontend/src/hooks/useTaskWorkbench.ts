@@ -11,8 +11,8 @@ export function useTaskWorkbench() {
     setDraftTask,
     tasks,
     setTasks,
-    activeTaskId,
-    setActiveTaskId,
+    activeTaskKey,
+    setActiveTaskKey,
     activeTask,
     setActiveTask,
     createModalOpen,
@@ -22,7 +22,7 @@ export function useTaskWorkbench() {
     error,
     setError,
   } = useTaskWorkbenchStore();
-  const [pollingTaskId, setPollingTaskId] = useState<string | null>(null);
+  const [pollingTaskKey, setPollingTaskKey] = useState<string | null>(null);
   const [taskFilters, setTaskFilters] = useState<FetchTasksParams>({});
 
   const stageCards = useMemo(() => {
@@ -34,20 +34,20 @@ export function useTaskWorkbench() {
     const data = await fetchTasks(resolvedFilters);
     setTasks(data.items);
     setTaskFilters(resolvedFilters);
-    const currentActiveTaskId = useTaskWorkbenchStore.getState().activeTaskId;
+    const currentActiveTaskKey = useTaskWorkbenchStore.getState().activeTaskKey;
 
-    if (!currentActiveTaskId && data.items[0]) {
-      setActiveTaskId(data.items[0].id);
+    if (!currentActiveTaskKey && data.items[0]) {
+      setActiveTaskKey(data.items[0]._id);
     }
   }
 
-  async function loadTask(taskId: string) {
-    const task = await fetchTask(taskId);
+  async function loadTask(_id: string) {
+    const task = await fetchTask(_id);
     setActiveTask(task);
-    setPollingTaskId(isTaskTerminalStatus(task.status) ? null : task.id);
+    setPollingTaskKey(isTaskTerminalStatus(task.status) ? null : task._id);
 
     const currentTasks = useTaskWorkbenchStore.getState().tasks;
-    const hasTask = currentTasks.some((item) => item.id === task.id);
+    const hasTask = currentTasks.some((item) => item._id === task._id);
 
     if (!hasTask) {
       setTasks([task, ...currentTasks]);
@@ -56,7 +56,7 @@ export function useTaskWorkbench() {
 
     setTasks(
       currentTasks.map((item) => {
-        return item.id === task.id ? task : item;
+        return item._id === task._id ? task : item;
       }),
     );
   }
@@ -71,10 +71,10 @@ export function useTaskWorkbench() {
         ...draftTask,
         productImages: uploadedAssets,
       });
-      await runTask(task.id);
+      await runTask(task._id);
       await loadTasks();
-      setActiveTaskId(task.id);
-      setPollingTaskId(task.id);
+      setActiveTaskKey(task._id);
+      setPollingTaskKey(task._id);
       setDraftTask(createDefaultTaskBrief());
       setCreateModalOpen(false);
     } catch (submitError) {
@@ -88,40 +88,40 @@ export function useTaskWorkbench() {
     loadTasks().catch((loadError) => {
       setError(loadError instanceof Error ? loadError.message : '加载任务失败');
     });
-  }, []);
+  }, [setError]);
 
   useEffect(() => {
-    if (!activeTaskId) {
+    if (!activeTaskKey) {
       setActiveTask(null);
-      setPollingTaskId(null);
+      setPollingTaskKey(null);
       return;
     }
 
-    setPollingTaskId(activeTaskId);
+    setPollingTaskKey(activeTaskKey);
 
-    loadTask(activeTaskId).catch((loadError) => {
+    loadTask(activeTaskKey).catch((loadError) => {
       setError(loadError instanceof Error ? loadError.message : '加载任务详情失败');
     });
-  }, [activeTaskId]);
+  }, [activeTaskKey, setActiveTask, setError]);
 
   useEffect(() => {
-    if (!pollingTaskId) {
+    if (!pollingTaskKey) {
       return;
     }
 
     const timer = window.setInterval(() => {
-      loadTask(pollingTaskId).catch(() => {});
+      loadTask(pollingTaskKey).catch(() => {});
     }, 1500);
 
     return () => window.clearInterval(timer);
-  }, [pollingTaskId]);
+  }, [pollingTaskKey]);
 
   return {
     draftTask,
     setDraftTask,
     tasks,
-    activeTaskId,
-    setActiveTaskId,
+    activeTaskKey,
+    setActiveTaskKey,
     activeTask,
     stageCards,
     createModalOpen,

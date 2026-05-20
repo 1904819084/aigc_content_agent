@@ -15,7 +15,7 @@ const { Paragraph, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 interface TaskListFilterValues {
-  taskId?: string;
+  _id?: string;
   productName?: string;
   createdAtRange?: [Dayjs, Dayjs] | null;
 }
@@ -41,7 +41,7 @@ export function TaskListPage() {
     const dateRange = values.createdAtRange ?? null;
 
     return {
-      taskId: values.taskId?.trim() ?? '',
+      _id: values._id?.trim() ?? '',
       productName: values.productName?.trim() ?? '',
       startDate: dateRange?.[0]?.startOf('day').toISOString(),
       endDate: dateRange?.[1]?.endOf('day').toISOString(),
@@ -124,7 +124,7 @@ export function TaskListPage() {
               >
                 <Row gutter={[16, 12]} align="bottom">
                   <Col xs={24} md={8}>
-                    <Form.Item<TaskListFilterValues> label="任务 ID" name="taskId" className="taskFilterItem">
+                    <Form.Item<TaskListFilterValues> label="任务 ID" name="_id" className="taskFilterItem">
                       <Input placeholder="输入任务 ID 模糊查询" allowClear />
                     </Form.Item>
                   </Col>

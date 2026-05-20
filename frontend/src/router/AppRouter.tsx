@@ -26,7 +26,7 @@ export function AppRouter() {
       >
         <Routes>
           <Route path="/" element={<TaskListPage />} />
-          <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
+          <Route path="/tasks/:_id" element={<TaskDetailPage />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

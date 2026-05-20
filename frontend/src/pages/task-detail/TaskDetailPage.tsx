@@ -14,17 +14,17 @@ import { getTaskCurrentStageLabel, getTaskStatusLabel } from '../../utils/task';
 const { Paragraph, Text } = Typography;
 
 export function TaskDetailPage() {
-  const { taskId } = useParams();
-  const { tasks, activeTask, setActiveTaskId } = useTaskWorkbench();
+  const { _id } = useParams();
+  const { tasks, activeTask, setActiveTaskKey } = useTaskWorkbench();
 
   const currentTask =
-    activeTask?.id === taskId ? activeTask : (tasks.find((task) => task.id === taskId) ?? null);
+    activeTask?._id === _id ? activeTask : (tasks.find((task) => task._id === _id) ?? null);
 
   useEffect(() => {
-    if (taskId) {
-      setActiveTaskId(taskId);
+    if (_id) {
+      setActiveTaskKey(_id);
     }
-  }, [taskId, setActiveTaskId]);
+  }, [_id, setActiveTaskKey]);
 
   return (
     <AppShell
@@ -95,9 +95,9 @@ export function TaskDetailPage() {
                       children: currentTask.brief.videoPrompt || '未填写',
                     },
                     {
-                      key: 'taskId',
+                      key: '_id',
                       label: '任务 ID',
-                      children: currentTask.id,
+                      children: currentTask._id,
                     },
                   ]}
                 />

@@ -34,7 +34,7 @@ export function ImageList(props: ImageListProps) {
             const shouldShowRemainingOverlay = remainingCount > 0 && isLastVisibleImage;
 
             return (
-              <div key={image.id} className={styles.item}>
+              <div key={image._id} className={styles.item}>
                 <div className={styles.media}>
                   <Image
                     src={image.url}

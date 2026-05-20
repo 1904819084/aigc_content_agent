@@ -14,14 +14,14 @@ const taskPipelineRunner = new TaskPipelineRunner(taskRepository, taskGraph);
 @Injectable()
 export default class TaskService {
   public async listTasks(query?: TaskListQuery) {
-    const taskId = query?.taskId?.trim().toLowerCase() ?? '';
+    const _id = query?._id?.trim().toLowerCase() ?? '';
     const productName = query?.productName?.trim().toLowerCase() ?? '';
     const startDate = query?.startDate?.trim() ?? '';
     const endDate = query?.endDate?.trim() ?? '';
     const tasks = await taskRepository.list();
 
     return tasks.filter((task) => {
-      const matchesTaskId = taskId ? task.id.toLowerCase().includes(taskId) : true;
+      const matchesTaskId = _id ? task._id.toLowerCase().includes(_id) : true;
       const matchesProductName = productName
         ? (task.brief.productName || task.name).toLowerCase().includes(productName)
         : true;
@@ -31,8 +31,8 @@ export default class TaskService {
     });
   }
 
-  public async getTaskById(taskId: string) {
-    const task = await taskRepository.findById(taskId);
+  public async getTaskById(_id: string) {
+    const task = await taskRepository.findById(_id);
     if (!task) {
       throw new AppError('task_not_found', 404);
     }
@@ -43,13 +43,13 @@ export default class TaskService {
     return taskRepository.save(createTaskEntity(brief));
   }
 
-  public async runTask(taskId: string) {
-    const task = await this.getTaskById(taskId);
+  public async runTask(_id: string) {
+    const task = await this.getTaskById(_id);
     if (task.status !== 'pending' && task.status !== 'failed') {
       throw new AppError('task_already_started', 400);
     }
     const resetTask = await taskRepository.save(resetTaskForRun(task));
-    taskPipelineRunner.start(resetTask.id);
+    taskPipelineRunner.start(resetTask._id);
     return resetTask;
   }
 }
