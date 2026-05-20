@@ -19,7 +19,7 @@ export class TaskPipelineRunner {
   }
 
   async runTaskGraph(taskId: string) {
-    const task = this.taskRepository.findById(taskId);
+    const task = await this.taskRepository.findById(taskId);
 
     if (!task) {
       return;
@@ -32,22 +32,21 @@ export class TaskPipelineRunner {
         error: null,
       });
 
-      const latestTask = this.taskRepository.findById(taskId);
+      const latestTask = await this.taskRepository.findById(taskId);
 
       if (!latestTask) {
         return;
       }
 
-      this.taskRepository.save(updateTaskStatus(latestTask, 'completed', null));
+      await this.taskRepository.save(updateTaskStatus(latestTask, 'completed', null));
     } catch {
-      const latestTask = this.taskRepository.findById(taskId);
+      const latestTask = await this.taskRepository.findById(taskId);
 
       if (!latestTask) {
         return;
       }
 
-      this.taskRepository.save(updateTaskStatus(latestTask, 'failed', latestTask.currentStage));
+      await this.taskRepository.save(updateTaskStatus(latestTask, 'failed', latestTask.currentStage));
     }
   }
 }
-

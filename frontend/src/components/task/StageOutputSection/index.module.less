@@ -4,17 +4,18 @@
 }
 
 .card {
-  border: 1px solid rgba(148, 163, 184, 0.1) !important;
-  border-radius: 18px !important;
-  background: rgba(2, 6, 23, 0.58) !important;
+  border: 1px solid rgba(8, 145, 178, 0.12) !important;
+  border-radius: 22px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 38px rgba(8, 145, 178, 0.08);
 
   :global(.ant-card-head) {
     min-height: 48px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    border-bottom: 1px solid rgba(14, 116, 144, 0.08);
   }
 
   :global(.ant-card-head-title) {
-    color: #e2e8f0;
+    color: #164e63;
     font-size: 14px;
     font-weight: 600;
   }
@@ -22,18 +23,52 @@
   :global(.ant-card-body) {
     padding: 16px 18px;
   }
+
+  :global(.ant-descriptions-item-label) {
+    color: #527589 !important;
+  }
+
+  :global(.ant-descriptions-item-content) {
+    color: #164e63 !important;
+  }
 }
 
-.summaryItem {
-  display: grid;
-  gap: 6px;
-  padding-bottom: 12px;
-  border-bottom: 1px dashed rgba(148, 163, 184, 0.12);
+.listItem {
+  padding: 14px 16px;
+  border: 1px solid rgba(8, 145, 178, 0.12);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(236, 254, 255, 0.72) 0%, #ffffff 100%);
+}
 
-  &:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
-  }
+.listItemTitle {
+  display: block;
+  margin-bottom: 12px;
+  color: #0f4c5c !important;
+}
+
+.listItemBody {
+  width: 100%;
+}
+
+.inlineValue {
+  color: #164e63;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.resourceLink {
+  display: inline-block;
+  max-width: 100%;
+  color: #0891b2 !important;
+  word-break: break-all;
+}
+
+.valueTag {
+  margin-inline-end: 0;
+  border-color: rgba(8, 145, 178, 0.14) !important;
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.12) !important;
+  color: #0f4c5c !important;
 }
 
 .jsonPanel {
@@ -43,11 +78,11 @@
     overflow: auto;
     margin: 0;
     padding: 18px;
-    border: 1px solid rgba(148, 163, 184, 0.12);
+    border: 1px solid rgba(8, 145, 178, 0.12);
     border-radius: 18px;
-    background: #020617;
-    color: #cbd5e1;
-    font-family: 'Fira Code', monospace;
+    background: #f8fcfd;
+    color: #164e63;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     line-height: 1.7;
   }

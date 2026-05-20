@@ -9,35 +9,54 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ConfigProvider
       theme={{
-        algorithm: theme.darkAlgorithm,
+        algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#f43f5e',
-          colorInfo: '#38bdf8',
+          colorPrimary: '#0891B2',
+          colorInfo: '#22D3EE',
           colorSuccess: '#22c55e',
           colorWarning: '#f59e0b',
-          colorError: '#f43f5e',
-          borderRadius: 18,
-          colorBgLayout: '#050816',
-          colorBgContainer: '#0f172a',
-          colorText: '#f8fafc',
-          colorTextSecondary: '#94a3b8',
-          colorBorderSecondary: 'rgba(148, 163, 184, 0.18)',
-          fontFamily: '"Fira Sans", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif',
+          colorError: '#ef4444',
+          borderRadius: 20,
+          colorBgLayout: '#ecfeff',
+          colorBgContainer: '#ffffff',
+          colorBgElevated: '#ffffff',
+          colorText: '#164E63',
+          colorTextSecondary: '#527589',
+          colorBorder: 'rgba(14, 116, 144, 0.14)',
+          colorBorderSecondary: 'rgba(14, 116, 144, 0.08)',
+          boxShadowSecondary: '0 18px 48px rgba(8, 145, 178, 0.12)',
+          fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif',
         },
         components: {
           Card: {
-            colorBgContainer: 'rgba(15, 23, 42, 0.78)',
+            colorBgContainer: '#ffffff',
+            headerFontSize: 16,
           },
           Table: {
             colorBgContainer: 'transparent',
-            headerBg: 'rgba(15, 23, 42, 0.92)',
-            headerColor: '#cbd5e1',
-            rowHoverBg: 'rgba(30, 41, 59, 0.78)',
-            borderColor: 'rgba(148, 163, 184, 0.14)',
+            headerBg: '#f4fbfc',
+            headerColor: '#527589',
+            rowHoverBg: '#f0fdff',
+            borderColor: 'rgba(14, 116, 144, 0.08)',
           },
           Modal: {
-            contentBg: '#0f172a',
-            headerBg: '#0f172a',
+            contentBg: '#ffffff',
+            headerBg: '#ffffff',
+          },
+          Button: {
+            primaryShadow: '0 12px 30px rgba(8, 145, 178, 0.24)',
+          },
+          Input: {
+            activeBorderColor: '#22D3EE',
+            hoverBorderColor: '#22D3EE',
+          },
+          Collapse: {
+            headerBg: '#ffffff',
+            contentBg: '#fbfeff',
+          },
+          Tag: {
+            defaultBg: '#f4fbfc',
+            defaultColor: '#164E63',
           },
         },
       }}

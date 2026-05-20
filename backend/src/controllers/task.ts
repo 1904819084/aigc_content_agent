@@ -1,6 +1,16 @@
 import { Inject } from '@gulux/gulux';
-import { Body, Controller, Get, Param, Post, Res, type HTTPResponse } from '@gulux/gulux/application-http';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Res,
+  type HTTPResponse,
+} from '@gulux/gulux/application-http';
 import TaskService from '../services/taskService';
+import type { TaskListQuery } from '../types';
 import { AppError } from '../utils/appError';
 import { isTaskBriefValid, normalizeTaskBrief } from '../utils/taskValidator';
 
@@ -10,9 +20,21 @@ export default class TaskController {
   private readonly taskService!: TaskService;
 
   @Get('')
-  public listTasks() {
+  public async listTasks(
+    @Query('taskId') taskId?: string,
+    @Query('productName') productName?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const query: TaskListQuery = {
+      taskId,
+      productName,
+      startDate,
+      endDate,
+    };
+
     return {
-      items: this.taskService.listTasks(),
+      items: await this.taskService.listTasks(query),
     };
   }
 
@@ -22,12 +44,12 @@ export default class TaskController {
   }
 
   @Post('')
-  public createTask(@Body() body: unknown, @Res() res: HTTPResponse) {
+  public async createTask(@Body() body: unknown, @Res() res: HTTPResponse) {
     if (!isTaskBriefValid(body)) {
       throw new AppError('invalid_task_payload', 400);
     }
 
-    const task = this.taskService.createTask(normalizeTaskBrief(body));
+    const task = await this.taskService.createTask(normalizeTaskBrief(body));
     res.status = 201;
     return task;
   }

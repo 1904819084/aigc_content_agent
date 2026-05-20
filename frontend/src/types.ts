@@ -23,24 +23,12 @@ export interface TaskStage {
   error: string | null;
 }
 
-export interface TaskStageOutputMetric {
-  label: string;
-  value: string | number;
-}
-
-export interface TaskStageOutputSummaryItem {
-  label: string;
-  value: string;
-}
-
 export interface TaskStageOutput {
   stageName: TaskStageName;
   version: 'v1';
   generatedAt: string;
-  input: Record<string, string | number | boolean>;
-  summary: TaskStageOutputSummaryItem[];
-  metrics: TaskStageOutputMetric[];
-  result: unknown;
+  input: Record<string, unknown>;
+  output: unknown;
 }
 
 export interface Task {

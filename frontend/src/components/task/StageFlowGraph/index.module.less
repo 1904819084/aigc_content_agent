@@ -1,0 +1,204 @@
+.flowWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flowHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.flowTitle {
+  display: block;
+  color: #0f3f57;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.flowDescription {
+  color: #648197;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px 14px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #5f7486;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.legendSuccess {
+  background: #16a34a;
+}
+
+.legendFailure {
+  background: #dc2626;
+}
+
+.legendPending {
+  background: #94a3b8;
+}
+
+.flowCanvas {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.stageFlow {
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.96) 34%, rgba(241, 245, 249, 0.98) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 26px;
+}
+
+.stageNodeContent {
+  display: flex;
+  min-height: 108px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.stageNodeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.stageIndex {
+  color: #8a9bab;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.stageNodeBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.stageStatusMeta {
+  display: inline-flex;
+  align-items: center;
+}
+
+.stageStatusTag {
+  margin-inline-end: 0;
+}
+
+.stageNodeTitle {
+  overflow: visible;
+  color: #11384f !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.nodeSuccess {
+  backdrop-filter: blur(8px);
+}
+
+.nodeFailure {
+  backdrop-filter: blur(8px);
+}
+
+.nodePending {
+  backdrop-filter: blur(8px);
+}
+
+.nodeRunning {
+  position: relative;
+}
+
+.nodeRunning::after {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 24px;
+  animation: pulse 1.8s ease-in-out infinite;
+  content: '';
+}
+
+:global(.react-flow__node) {
+  border: none !important;
+}
+
+:global(.react-flow__node-default) {
+  padding: 0 !important;
+  font-size: 12px;
+  background: transparent !important;
+}
+
+:global(.react-flow__handle) {
+  width: 8px;
+  height: 8px;
+  border: 2px solid #ffffff;
+  background: #8ccfda;
+  opacity: 0;
+  pointer-events: none;
+}
+
+:global(.react-flow__edge-path) {
+  stroke-linecap: round;
+}
+
+:global(.react-flow__edge.animated path) {
+  stroke-dasharray: 8 8;
+}
+
+:global(.react-flow__viewport) {
+  padding: 4px;
+}
+
+:global(.react-flow__panel) {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .flowHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .legend {
+    justify-content: flex-start;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
+}

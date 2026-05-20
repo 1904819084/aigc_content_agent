@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createDefaultTaskBrief } from '../constants/task';
 import { uploadAssets } from '../services/assetService';
-import { createTask, fetchTask, fetchTasks, runTask } from '../services/taskService';
+import { createTask, fetchTask, fetchTasks, runTask, type FetchTasksParams } from '../services/taskService';
 import { useTaskWorkbenchStore } from '../store/taskWorkbenchStore';
 import { isTaskTerminalStatus } from '../utils/task';
 
@@ -23,14 +23,17 @@ export function useTaskWorkbench() {
     setError,
   } = useTaskWorkbenchStore();
   const [pollingTaskId, setPollingTaskId] = useState<string | null>(null);
+  const [taskFilters, setTaskFilters] = useState<FetchTasksParams>({});
 
   const stageCards = useMemo(() => {
     return activeTask?.stages ?? [];
   }, [activeTask]);
 
-  async function loadTasks() {
-    const data = await fetchTasks();
+  async function loadTasks(nextFilters?: FetchTasksParams) {
+    const resolvedFilters = nextFilters ?? taskFilters;
+    const data = await fetchTasks(resolvedFilters);
     setTasks(data.items);
+    setTaskFilters(resolvedFilters);
     const currentActiveTaskId = useTaskWorkbenchStore.getState().activeTaskId;
 
     if (!currentActiveTaskId && data.items[0]) {
@@ -125,6 +128,8 @@ export function useTaskWorkbench() {
     setCreateModalOpen,
     submitting,
     error,
+    taskFilters,
+    setTaskFilters,
     loadTasks,
     loadTask,
     createAndRunTask,

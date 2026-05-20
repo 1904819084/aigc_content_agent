@@ -9,9 +9,9 @@ export default class AssetController {
   private readonly assetService!: AssetService;
 
   @Post('/upload')
-  public uploadAssets(@Files('files') files: unknown, @Res() res: HTTPResponse) {
+  public async uploadAssets(@Files('files') files: unknown, @Res() res: HTTPResponse) {
     const uploadedFiles = normalizeUploadedFiles(files);
-    const assets = this.assetService.createAssetsFromUploadedFiles(uploadedFiles);
+    const assets = await this.assetService.createAssetsFromUploadedFiles(uploadedFiles);
     res.status = 201;
     return {
       items: assets,

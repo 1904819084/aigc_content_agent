@@ -1,7 +1,9 @@
 export enum TaskStageName {
   ScriptGenerating = 'script_generating',
   StoryboardGenerating = 'storyboard_generating',
+  ImagePromptGenerating = 'image_prompt_generating',
   ImageGenerating = 'image_generating',
+  VideoPromptGenerating = 'video_prompt_generating',
   VideoGenerating = 'video_generating',
   Editing = 'editing',
   QaReviewing = 'qa_reviewing',
@@ -22,12 +24,14 @@ export enum TaskStatus {
 }
 
 export const TASK_STAGE_LABELS: Record<TaskStageName, string> = {
-  [TaskStageName.ScriptGenerating]: '剧本生成',
+  [TaskStageName.ScriptGenerating]: '短视频剧本生成',
   [TaskStageName.StoryboardGenerating]: '分镜脚本生成',
+  [TaskStageName.ImagePromptGenerating]: '分镜图提示词生成',
   [TaskStageName.ImageGenerating]: '分镜图生成',
+  [TaskStageName.VideoPromptGenerating]: '分镜视频提示词生成',
   [TaskStageName.VideoGenerating]: '分镜视频生成',
-  [TaskStageName.Editing]: '视频混剪',
-  [TaskStageName.QaReviewing]: '质检审阅',
+  [TaskStageName.Editing]: '分镜视频混剪成片',
+  [TaskStageName.QaReviewing]: '短视频内容质检',
 };
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
@@ -59,7 +63,7 @@ export const TASK_STAGE_TAG_COLOR_MAP: Record<
   'default' | 'processing' | 'success' | 'error'
 > = {
   [TaskStageStatus.Pending]: 'default',
-  [TaskStageStatus.Running]: 'default',
+  [TaskStageStatus.Running]: 'processing',
   [TaskStageStatus.Completed]: 'success',
   [TaskStageStatus.Failed]: 'error',
 };
@@ -69,7 +73,7 @@ export const TASK_STATUS_TAG_COLOR_MAP: Record<
   'default' | 'processing' | 'success' | 'error'
 > = {
   [TaskStatus.Pending]: 'default',
-  [TaskStatus.Running]: 'default',
+  [TaskStatus.Running]: 'processing',
   [TaskStatus.Completed]: 'success',
   [TaskStatus.Failed]: 'error',
 };

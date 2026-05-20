@@ -1,8 +1,7 @@
-import { Card, Collapse, Descriptions, Empty, Space, Steps, Tag, Typography } from 'antd';
-import { TASK_STAGE_STEP_STATUS_MAP, TASK_STAGE_TAG_COLOR_MAP, TaskStageStatus } from '../../../constants/task';
+import { Card, Collapse, Descriptions, Empty, Space, Tag, Typography } from 'antd';
+import { TASK_STAGE_TAG_COLOR_MAP, TaskStageStatus } from '../../../constants/task';
 import type { Task } from '../../../types';
 import {
-  getCurrentTaskStageIndex,
   getTaskStageOutput,
   getTaskStageLabel,
   getTaskStageStatusLabel,
@@ -10,6 +9,7 @@ import {
 } from '../../../utils/task';
 import { StatusIcon } from '../../common/StatusIcon';
 import { StatusTag } from '../../common/StatusTag';
+import { StageFlowGraph } from '../StageFlowGraph';
 import { StageOutputSection } from '../StageOutputSection';
 import styles from './index.module.less';
 
@@ -34,15 +34,7 @@ export function TaskStagePanel(props: TaskStagePanelProps) {
   return (
     <Space direction="vertical" size={16} className={styles.root}>
       <Card variant="borderless" className={sectionCardClassNames}>
-        <Steps
-          current={getCurrentTaskStageIndex(task)}
-          responsive
-          items={task.stages.map((stage) => ({
-            title: getTaskStageLabel(stage.name),
-            status: TASK_STAGE_STEP_STATUS_MAP[stage.status],
-            icon: <StatusIcon status={stage.status} />,
-          }))}
-        />
+        <StageFlowGraph task={task} />
       </Card>
 
       <Card variant="borderless" title="阶段详情" className={sectionCardClassNames}>

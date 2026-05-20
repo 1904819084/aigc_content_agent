@@ -1,9 +1,9 @@
 .modal {
   :global(.ant-modal-content) {
-    border: 1px solid rgba(148, 163, 184, 0.16);
+    border: 1px solid rgba(8, 145, 178, 0.12);
     border-radius: 28px;
     padding: 24px;
-    box-shadow: 0 28px 80px rgba(2, 6, 23, 0.5);
+    box-shadow: 0 28px 80px rgba(8, 145, 178, 0.16);
   }
 
   :global(.ant-modal-header) {
@@ -13,7 +13,17 @@
   :global(.ant-input),
   :global(.ant-input-affix-wrapper) {
     border-radius: 14px;
-    background: rgba(15, 23, 42, 0.76);
+    background: #f8fcfd;
+  }
+
+  :global(.ant-upload-wrapper .ant-upload-drag) {
+    border-color: rgba(8, 145, 178, 0.18);
+    border-radius: 18px;
+    background: #f8fcfd;
+  }
+
+  :global(.ant-upload-wrapper .ant-upload-drag:hover) {
+    border-color: #22d3ee;
   }
 }
 
@@ -23,6 +33,7 @@
 
 .description {
   margin-bottom: 0 !important;
+  color: #527589 !important;
 }
 
 .errorMessage {

@@ -1,5 +1,6 @@
-import { PlusOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Row, Space, Typography } from 'antd';
+import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Card, Col, DatePicker, Form, Input, Row, Space, Typography } from 'antd';
+import type { Dayjs } from 'dayjs';
 import { AppShell } from '../../components/common/AppShell';
 import { PageHero } from '../../components/layout/PageHero';
 import { CreateTaskModal } from '../../components/task/CreateTaskModal';
@@ -7,9 +8,17 @@ import { TaskListTable } from '../../components/task/TaskListTable';
 import { TaskSummaryCards } from '../../components/task/TaskSummaryCards';
 import { TaskStatus } from '../../constants/task';
 import { useTaskWorkbench } from '../../hooks/useTaskWorkbench';
+import type { FetchTasksParams } from '../../services/taskService';
 import { isTaskRunningStatus } from '../../utils/task';
 
 const { Paragraph, Text } = Typography;
+const { RangePicker } = DatePicker;
+
+interface TaskListFilterValues {
+  taskId?: string;
+  productName?: string;
+  createdAtRange?: [Dayjs, Dayjs] | null;
+}
 
 export function TaskListPage() {
   const {
@@ -21,10 +30,32 @@ export function TaskListPage() {
     submitting,
     error,
     createAndRunTask,
+    loadTasks,
   } = useTaskWorkbench();
+  const [filterForm] = Form.useForm<TaskListFilterValues>();
 
   const runningCount = tasks.filter((task) => isTaskRunningStatus(task.status)).length;
   const completedCount = tasks.filter((task) => task.status === TaskStatus.Completed).length;
+
+  function buildTaskQuery(values: TaskListFilterValues): FetchTasksParams {
+    const dateRange = values.createdAtRange ?? null;
+
+    return {
+      taskId: values.taskId?.trim() ?? '',
+      productName: values.productName?.trim() ?? '',
+      startDate: dateRange?.[0]?.startOf('day').toISOString(),
+      endDate: dateRange?.[1]?.endOf('day').toISOString(),
+    };
+  }
+
+  async function handleFilterSubmit(values: TaskListFilterValues) {
+    await loadTasks(buildTaskQuery(values));
+  }
+
+  async function handleFilterReset() {
+    filterForm.resetFields();
+    await loadTasks({});
+  }
 
   return (
     <AppShell
@@ -81,10 +112,59 @@ export function TaskListPage() {
               title="任务列表"
               extra={
                 <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                  共 {tasks.length} 个任务
+                  当前返回 {tasks.length} 个任务
                 </Paragraph>
               }
             >
+              <Form<TaskListFilterValues>
+                form={filterForm}
+                layout="vertical"
+                onFinish={handleFilterSubmit}
+                className="taskFilterForm"
+              >
+                <Row gutter={[16, 12]} align="bottom">
+                  <Col xs={24} md={8}>
+                    <Form.Item<TaskListFilterValues> label="任务 ID" name="taskId" className="taskFilterItem">
+                      <Input placeholder="输入任务 ID 模糊查询" allowClear />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <Form.Item<TaskListFilterValues>
+                      label="商品名称"
+                      name="productName"
+                      className="taskFilterItem"
+                    >
+                      <Input placeholder="输入商品名称模糊查询" allowClear />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <Form.Item<TaskListFilterValues>
+                      label="任务创建日期"
+                      name="createdAtRange"
+                      className="taskFilterItem"
+                    >
+                      <RangePicker
+                        allowClear
+                        className="taskFilterRange"
+                        style={{ width: '100%' }}
+                        placeholder={['开始日期', '结束日期']}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={24}>
+                    <div className="taskFilterActions">
+                      <Space wrap>
+                        <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                          查询
+                        </Button>
+                        <Button icon={<ReloadOutlined />} onClick={() => void handleFilterReset()}>
+                          重置
+                        </Button>
+                      </Space>
+                    </div>
+                  </Col>
+                </Row>
+              </Form>
               <TaskListTable tasks={tasks} loading={submitting && tasks.length === 0} />
             </Card>
           </Col>

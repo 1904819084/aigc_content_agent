@@ -37,7 +37,7 @@ export function getTaskCurrentStageLabel(task: Task) {
 }
 
 export function stringifyTaskOutput(value: unknown) {
-  return JSON.stringify(value, null, 2);
+  return JSON.stringify(value, null, 2) ?? 'null';
 }
 
 export function getTaskStageOutput(task: Task, stage: TaskStage) {

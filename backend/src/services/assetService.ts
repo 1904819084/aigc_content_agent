@@ -1,13 +1,13 @@
 import { Injectable } from '@gulux/gulux';
-import { createAssetRepository } from '../data/createAssetRepository';
+import { MongoAssetRepository } from '../data/mongoAssetRepository';
 import type { UploadedAssetFile } from '../types';
 import { AppError } from '../utils/appError';
 
-const assetRepository = createAssetRepository();
+const assetRepository = new MongoAssetRepository();
 
 @Injectable()
 export default class AssetService {
-  public createAssetsFromUploadedFiles(files: UploadedAssetFile[]) {
+  public async createAssetsFromUploadedFiles(files: UploadedAssetFile[]) {
     if (files.length === 0) {
       throw new AppError('asset_files_required', 400);
     }
@@ -23,7 +23,7 @@ export default class AssetService {
       };
     });
 
-    assetRepository.saveMany(assets);
+    await assetRepository.saveMany(assets);
     return assets;
   }
 }

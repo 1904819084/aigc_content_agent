@@ -117,7 +117,7 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
               <p className="ant-upload-hint">最多 3 张，当前已选择 {fileList.length} 张</p>
             </Upload.Dragger>
           </Form.Item>
-          <Form.Item label="短视频 Prompt" name="videoPrompt" style={{ marginBottom: 0 }}>
+          <Form.Item label="补充Prompt" name="videoPrompt" style={{ marginBottom: 0 }}>
             <TextArea
               name="videoPrompt"
               value={draftTask.videoPrompt}

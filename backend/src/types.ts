@@ -33,6 +33,13 @@ export interface TaskBrief {
   videoPrompt: string;
 }
 
+export interface TaskListQuery {
+  taskId?: string;
+  productName?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface ScriptSection {
   heading: string;
   narration: string;
@@ -127,12 +134,12 @@ export interface Task {
 }
 
 export interface TaskRepository {
-  list(): Task[];
-  findById(taskId: string): Task | null;
-  save(task: Task): Task;
+  list(): Promise<Task[]>;
+  findById(taskId: string): Promise<Task | null>;
+  save(task: Task): Promise<Task>;
 }
 
 export interface AssetRepository {
-  list(): AssetResource[];
-  saveMany(assets: AssetResource[]): AssetResource[];
+  list(): Promise<AssetResource[]>;
+  saveMany(assets: AssetResource[]): Promise<AssetResource[]>;
 }
