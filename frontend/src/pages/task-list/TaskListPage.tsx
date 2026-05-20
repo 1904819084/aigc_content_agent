@@ -2,7 +2,7 @@ import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { Button, Card, Col, DatePicker, Form, Input, Row, Space, Typography } from 'antd';
 import type { Dayjs } from 'dayjs';
 import { AppShell } from '../../components/common/AppShell';
-import { PageHero } from '../../components/layout/PageHero';
+import { PageHero } from '../../components/common/PageHero';
 import { CreateTaskModal } from '../../components/task/CreateTaskModal';
 import { TaskListTable } from '../../components/task/TaskListTable';
 import { TaskSummaryCards } from '../../components/task/TaskSummaryCards';

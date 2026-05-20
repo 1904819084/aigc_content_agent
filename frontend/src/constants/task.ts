@@ -60,20 +60,20 @@ export const TASK_STAGE_STEP_STATUS_MAP: Record<
 
 export const TASK_STAGE_TAG_COLOR_MAP: Record<
   TaskStageStatus,
-  'default' | 'processing' | 'success' | 'error'
+  'default' | 'warning' | 'success' | 'error'
 > = {
   [TaskStageStatus.Pending]: 'default',
-  [TaskStageStatus.Running]: 'processing',
+  [TaskStageStatus.Running]: 'warning',
   [TaskStageStatus.Completed]: 'success',
   [TaskStageStatus.Failed]: 'error',
 };
 
 export const TASK_STATUS_TAG_COLOR_MAP: Record<
   TaskStatus,
-  'default' | 'processing' | 'success' | 'error'
+  'default' | 'warning' | 'success' | 'error'
 > = {
   [TaskStatus.Pending]: 'default',
-  [TaskStatus.Running]: 'processing',
+  [TaskStatus.Running]: 'warning',
   [TaskStatus.Completed]: 'success',
   [TaskStatus.Failed]: 'error',
 };

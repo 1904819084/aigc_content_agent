@@ -4,6 +4,26 @@
   gap: 16px;
 }
 
+.flowViewport {
+  position: relative;
+}
+
+.flowViewportHint {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  z-index: 3;
+  padding: 6px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #6b7f91;
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: 0 10px 24px rgba(148, 163, 184, 0.14);
+  backdrop-filter: blur(12px);
+}
+
 .flowHeader {
   display: flex;
   align-items: flex-start;
@@ -13,13 +33,14 @@
 
 .flowTitle {
   display: block;
-  color: #0f3f57;
+  color: #12344d;
   font-size: 15px;
+  font-weight: 700;
   line-height: 1.4;
 }
 
 .flowDescription {
-  color: #648197;
+  color: #6a8194;
   font-size: 12px;
   line-height: 1.5;
 }
@@ -35,102 +56,112 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #5f7486;
+  color: #64798b;
   font-size: 12px;
   line-height: 1;
 }
 
-.legendDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-}
-
-.legendSuccess {
-  background: #16a34a;
-}
-
-.legendFailure {
-  background: #dc2626;
-}
-
-.legendPending {
-  background: #94a3b8;
+.legendIcon {
+  font-size: 14px;
 }
 
 .flowCanvas {
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px;
+  scrollbar-gutter: stable both-edges;
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    rgba(0, 0, 0, 1) 28px,
+    rgba(0, 0, 0, 1) calc(100% - 28px),
+    transparent 100%
+  );
+}
+
+.flowCanvasInner {
+  min-width: 100%;
 }
 
 .stageFlow {
   width: 100%;
   height: 100%;
-  min-width: 100%;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.96) 34%, rgba(241, 245, 249, 0.98) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 26px;
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 34%, rgba(241, 245, 249, 0.98) 100%);
+  border: 1px solid rgba(191, 219, 254, 0.5);
+  border-radius: 28px;
+  box-shadow:
+    0 18px 40px rgba(148, 163, 184, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
 }
 
 .stageNodeContent {
   display: flex;
-  min-height: 108px;
+  min-height: 86px;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 12px 14px;
 }
 
 .stageNodeHeader {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 8px;
 }
 
 .stageIndex {
-  color: #8a9bab;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #7b8f9f;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
+  line-height: 1;
 }
 
 .stageNodeBody {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  margin-top: auto;
-}
-
-.stageStatusMeta {
-  display: inline-flex;
-  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 1;
 }
 
 .stageStatusTag {
   margin-inline-end: 0;
+  transform: scale(0.92);
+  transform-origin: right center;
 }
 
 .stageNodeTitle {
   overflow: visible;
-  color: #11384f !important;
+  color: #16354d !important;
   font-size: 13px !important;
-  line-height: 1.5 !important;
+  line-height: 1.45 !important;
   word-break: break-word;
   white-space: normal;
 }
 
 .nodeSuccess {
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
 }
 
 .nodeFailure {
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
 }
 
 .nodePending {
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
 }
 
 .nodeRunning {
@@ -167,14 +198,19 @@
 
 :global(.react-flow__edge-path) {
   stroke-linecap: round;
+  filter: drop-shadow(0 2px 6px rgba(148, 163, 184, 0.12));
 }
 
 :global(.react-flow__edge.animated path) {
-  stroke-dasharray: 8 8;
+  stroke-dasharray: 6 6;
 }
 
 :global(.react-flow__viewport) {
   padding: 4px;
+}
+
+:global(.react-flow__background) {
+  opacity: 0.65;
 }
 
 :global(.react-flow__panel) {

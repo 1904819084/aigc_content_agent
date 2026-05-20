@@ -1,32 +1,107 @@
 import {
   Background,
-  MarkerType,
   Position,
   ReactFlow,
   ReactFlowProvider,
+  type EdgeTypes,
   type Edge,
   type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Typography } from 'antd';
-import { TASK_STAGE_TAG_COLOR_MAP, TaskStageStatus } from '../../../constants/task';
+import { useMemo } from 'react';
+import { useEdgeRouting } from 'reactflow-edge-routing';
+import { TASK_STAGE_TAG_COLOR_MAP, TaskStageName, TaskStageStatus } from '../../../constants/task';
 import type { Task } from '../../../types';
 import { getTaskStageLabel, getTaskStageStatusLabel } from '../../../utils/task';
+import { StatusIcon } from '../../common/StatusIcon';
 import { StatusTag } from '../../common/StatusTag';
+import { RoutedStageEdge } from './RoutedStageEdge';
 import styles from './index.module.less';
 
 const { Text } = Typography;
+const EDGE_TYPES: EdgeTypes = {
+  routed: RoutedStageEdge,
+};
 
-const STAGE_NODE_WIDTH = 192;
-const STAGE_NODE_HEIGHT = 110;
-const STAGE_NODE_GAP_X = 46;
-const STAGE_NODE_GAP_Y = 86;
-const STAGE_ROW_COUNT = 2;
-const STAGE_COLUMNS_PER_ROW = 4;
-const STAGE_CANVAS_PADDING_X = 28;
+const STAGE_NODE_WIDTH = 164;
+const STAGE_NODE_HEIGHT = 88;
+const STAGE_NODE_GAP_X = 26;
+const STAGE_NODE_GAP_Y = 68;
+const STAGE_CANVAS_PADDING_X = 12;
 const STAGE_CANVAS_PADDING_Y = 26;
 const STAGE_NODE_X_STEP = STAGE_NODE_WIDTH + STAGE_NODE_GAP_X;
 const STAGE_NODE_Y_STEP = STAGE_NODE_HEIGHT + STAGE_NODE_GAP_Y;
+const STAGE_CANVAS_EXTRA_RIGHT = 72;
+
+type StageLayout = {
+  x: number;
+  y: number;
+  sourcePosition: Position;
+  targetPosition: Position;
+};
+
+const STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
+  [TaskStageName.ScriptGenerating]: {
+    x: STAGE_CANVAS_PADDING_X,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.StoryboardGenerating]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.ImagePromptGenerating]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
+    y: STAGE_CANVAS_PADDING_Y,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.ImageGenerating]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 3,
+    y: STAGE_CANVAS_PADDING_Y,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.VideoPromptGenerating]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP * 2,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.VideoGenerating]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 4,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.Editing]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 5,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.QaReviewing]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 6,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+};
+
+const STAGE_FLOW_DEPENDENCIES: Array<[TaskStageName, TaskStageName]> = [
+  [TaskStageName.ScriptGenerating, TaskStageName.StoryboardGenerating],
+  [TaskStageName.StoryboardGenerating, TaskStageName.ImagePromptGenerating],
+  [TaskStageName.StoryboardGenerating, TaskStageName.VideoPromptGenerating],
+  [TaskStageName.ImagePromptGenerating, TaskStageName.ImageGenerating],
+  [TaskStageName.ImageGenerating, TaskStageName.VideoGenerating],
+  [TaskStageName.VideoPromptGenerating, TaskStageName.VideoGenerating],
+  [TaskStageName.VideoGenerating, TaskStageName.Editing],
+  [TaskStageName.Editing, TaskStageName.QaReviewing],
+];
 
 function getStageColor(status: TaskStageStatus) {
   if (status === TaskStageStatus.Completed) {
@@ -58,17 +133,8 @@ function getStageColor(status: TaskStageStatus) {
   };
 }
 
-function getStagePosition(index: number) {
-  const row = Math.floor(index / STAGE_COLUMNS_PER_ROW);
-  const rawColumn = index % STAGE_COLUMNS_PER_ROW;
-  const column = row % STAGE_ROW_COUNT === 0 ? rawColumn : STAGE_COLUMNS_PER_ROW - 1 - rawColumn;
-
-  return {
-    x: STAGE_CANVAS_PADDING_X + column * STAGE_NODE_X_STEP,
-    y: STAGE_CANVAS_PADDING_Y + row * STAGE_NODE_Y_STEP,
-    row,
-    column,
-  };
+function getStageLayout(stageName: TaskStageName): StageLayout {
+  return STAGE_LAYOUT_MAP[stageName];
 }
 
 function getEdgeColor(sourceStatus: TaskStageStatus, targetStatus: TaskStageStatus) {
@@ -83,14 +149,23 @@ function getEdgeColor(sourceStatus: TaskStageStatus, targetStatus: TaskStageStat
   return '#94a3b8';
 }
 
+function getCanvasSize(task: Task) {
+  const layouts = task.stages.map((stage) => getStageLayout(stage.name));
+  const maxX = Math.max(...layouts.map((layout) => layout.x), STAGE_CANVAS_PADDING_X);
+  const maxY = Math.max(...layouts.map((layout) => layout.y), STAGE_CANVAS_PADDING_Y);
+
+  return {
+    width: maxX + STAGE_NODE_WIDTH + STAGE_CANVAS_PADDING_X + STAGE_CANVAS_EXTRA_RIGHT,
+    height: maxY + STAGE_NODE_HEIGHT + STAGE_CANVAS_PADDING_Y,
+  };
+}
+
 function buildStageFlowNodes(task: Task): Node[] {
   return task.stages.map((stage, index) => ({
     id: stage.name,
-    position: getStagePosition(index),
-    sourcePosition:
-      getStagePosition(index).row % STAGE_ROW_COUNT === 0 ? Position.Right : Position.Left,
-    targetPosition:
-      getStagePosition(index).row % STAGE_ROW_COUNT === 0 ? Position.Left : Position.Right,
+    position: getStageLayout(stage.name),
+    sourcePosition: getStageLayout(stage.name).sourcePosition,
+    targetPosition: getStageLayout(stage.name).targetPosition,
     draggable: false,
     selectable: false,
     data: {
@@ -104,17 +179,15 @@ function buildStageFlowNodes(task: Task): Node[] {
         >
           <div className={styles.stageNodeHeader}>
             <span className={styles.stageIndex}>0{index + 1}</span>
+            <StatusTag
+              status={stage.status}
+              color={TASK_STAGE_TAG_COLOR_MAP[stage.status]}
+              className={styles.stageStatusTag}
+            >
+              {getTaskStageStatusLabel(stage.status)}
+            </StatusTag>
           </div>
           <div className={styles.stageNodeBody}>
-            <div className={styles.stageStatusMeta}>
-              <StatusTag
-                status={stage.status}
-                color={TASK_STAGE_TAG_COLOR_MAP[stage.status]}
-                className={styles.stageStatusTag}
-              >
-                {getTaskStageStatusLabel(stage.status)}
-              </StatusTag>
-            </div>
             <Text strong className={styles.stageNodeTitle}>
               {getTaskStageLabel(stage.name)}
             </Text>
@@ -135,41 +208,36 @@ function buildStageFlowNodes(task: Task): Node[] {
 }
 
 function buildStageFlowEdges(task: Task): Edge[] {
-  return task.stages.slice(0, -1).map((stage, index) => {
-    const nextStage = task.stages[index + 1];
-    const currentPosition = getStagePosition(index);
-    const nextPosition = getStagePosition(index + 1);
-    const edgeColor = getEdgeColor(stage.status, nextStage.status);
-    const isVerticalTurn =
-      currentPosition.row !== nextPosition.row && currentPosition.column === nextPosition.column;
+  const stageMap = new Map(task.stages.map((stage) => [stage.name, stage]));
 
+  return STAGE_FLOW_DEPENDENCIES.flatMap(([sourceStageName, targetStageName]) => {
+    const sourceStage = stageMap.get(sourceStageName);
+    const targetStage = stageMap.get(targetStageName);
+
+    if (!sourceStage || !targetStage) {
+      return [];
+    }
+
+    const sourceLayout = getStageLayout(sourceStageName);
+    const targetLayout = getStageLayout(targetStageName);
+    const edgeColor = getEdgeColor(sourceStage.status, targetStage.status);
     return {
-      id: `${stage.name}-${nextStage.name}`,
-      source: stage.name,
-      target: nextStage.name,
-      type: 'smoothstep',
-      sourcePosition:
-        currentPosition.row % STAGE_ROW_COUNT === 0 ? Position.Right : Position.Left,
-      targetPosition:
-        nextPosition.row % STAGE_ROW_COUNT === 0 ? Position.Left : Position.Right,
-      animated: stage.status === TaskStageStatus.Running || nextStage.status === TaskStageStatus.Running,
-      pathOptions: {
-        borderRadius: 18,
-        offset: isVerticalTurn ? 22 : 26,
-      },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 16,
-        height: 16,
-        color: edgeColor,
-      },
+      id: `${sourceStageName}-${targetStageName}`,
+      source: sourceStageName,
+      target: targetStageName,
+      type: 'routed',
+      sourcePosition: sourceLayout.sourcePosition,
+      targetPosition: targetLayout.targetPosition,
+      animated:
+        sourceStage.status === TaskStageStatus.Running || targetStage.status === TaskStageStatus.Running,
       style: {
-        strokeWidth: 2.5,
+        strokeWidth: 2.25,
         stroke: edgeColor,
-        strokeDasharray:
-          stage.status === TaskStageStatus.Pending || nextStage.status === TaskStageStatus.Pending
-            ? '6 6'
-            : undefined,
+        strokeDasharray: '6 6',
+        opacity:
+          sourceStage.status === TaskStageStatus.Pending || targetStage.status === TaskStageStatus.Pending
+            ? 0.78
+            : 1,
       },
     };
   });
@@ -181,8 +249,20 @@ interface StageFlowGraphProps {
 
 export function StageFlowGraph(props: StageFlowGraphProps) {
   const { task } = props;
-  const rowCount = Math.ceil(task.stages.length / STAGE_COLUMNS_PER_ROW);
-  const canvasHeight = STAGE_CANVAS_PADDING_Y * 2 + rowCount * STAGE_NODE_HEIGHT + Math.max(rowCount - 1, 0) * STAGE_NODE_GAP_Y;
+  const canvasSize = getCanvasSize(task);
+  const nodes = useMemo(() => buildStageFlowNodes(task), [task]);
+  const edges = useMemo(() => buildStageFlowEdges(task), [task]);
+
+  useEdgeRouting(nodes, edges, {
+    connectorType: 'bezier',
+    autoBestSideConnection: true,
+    shouldSplitEdgesNearHandle: true,
+    edgeToNodeSpacing: 14,
+    edgeToEdgeSpacing: 6,
+    stubSize: 12,
+    edgeRounding: 20,
+    routeOnlyWhenBlocked: false,
+  });
 
   return (
     <div className={styles.flowWrap}>
@@ -191,48 +271,59 @@ export function StageFlowGraph(props: StageFlowGraphProps) {
           <Text strong className={styles.flowTitle}>
             Agent Pipeline
           </Text>
-          <Text className={styles.flowDescription}>按阶段串联生成内容，颜色直接表达执行结果</Text>
+          <Text className={styles.flowDescription}>按 DAG 依赖展示并发分叉与汇合，支持横向滚动查看完整链路</Text>
         </div>
         <div className={styles.legend}>
           <span className={styles.legendItem}>
-            <span className={[styles.legendDot, styles.legendSuccess].join(' ')} />
+            <StatusIcon status={TaskStageStatus.Completed} className={styles.legendIcon} />
             成功
           </span>
           <span className={styles.legendItem}>
-            <span className={[styles.legendDot, styles.legendFailure].join(' ')} />
+            <StatusIcon status={TaskStageStatus.Failed} className={styles.legendIcon} />
             失败
           </span>
           <span className={styles.legendItem}>
-            <span className={[styles.legendDot, styles.legendPending].join(' ')} />
-            未开始 / 执行中
+            <StatusIcon status={TaskStageStatus.Pending} className={styles.legendIcon} />
+            未开始
+          </span>
+          <span className={styles.legendItem}>
+            <StatusIcon status={TaskStageStatus.Running} className={styles.legendIcon} />
+            执行中
           </span>
         </div>
       </div>
 
-      <div className={styles.flowCanvas} style={{ height: canvasHeight + 12 }}>
-        <ReactFlowProvider>
-          <ReactFlow
-            nodes={buildStageFlowNodes(task)}
-            edges={buildStageFlowEdges(task)}
-            fitView
-            fitViewOptions={{ padding: 0.08, minZoom: 0.92, maxZoom: 1 }}
-            minZoom={0.92}
-            maxZoom={1}
-            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable={false}
-            zoomOnScroll={false}
-            zoomOnPinch={false}
-            panOnDrag={false}
-            panOnScroll={false}
-            preventScrolling={false}
-            proOptions={{ hideAttribution: true }}
-            className={styles.stageFlow}
+      <div className={styles.flowViewport}>
+        <div className={styles.flowViewportHint}>左右滚动查看完整流程</div>
+        <div className={styles.flowCanvas}>
+          <div
+            className={styles.flowCanvasInner}
+            style={{ width: canvasSize.width, height: canvasSize.height + 12 }}
           >
-            <Background color="rgba(148, 163, 184, 0.12)" gap={24} size={1} />
-          </ReactFlow>
-        </ReactFlowProvider>
+            <ReactFlowProvider>
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                edgeTypes={EDGE_TYPES}
+                minZoom={1}
+                maxZoom={1}
+                defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+                nodesDraggable={false}
+                nodesConnectable={false}
+                elementsSelectable={false}
+                zoomOnScroll={false}
+                zoomOnPinch={false}
+                panOnDrag={false}
+                panOnScroll={false}
+                preventScrolling={false}
+                proOptions={{ hideAttribution: true }}
+                className={styles.stageFlow}
+              >
+                <Background color="rgba(148, 163, 184, 0.12)" gap={24} size={1} />
+              </ReactFlow>
+            </ReactFlowProvider>
+          </div>
+        </div>
       </div>
     </div>
   );

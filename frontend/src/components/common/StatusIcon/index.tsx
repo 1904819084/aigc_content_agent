@@ -1,4 +1,4 @@
-import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, ClockCircleOutlined, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import type { CSSProperties } from 'react';
 import { TaskStageStatus, type TaskStatus } from '../../../constants/task';
 import styles from './index.module.less';
@@ -24,12 +24,15 @@ export function StatusIcon(props: StatusIconProps) {
     return <CloseCircleFilled className={[mergedClassName, styles.failure].join(' ')} style={iconStyle} />;
   }
 
+  if (status === TaskStageStatus.Pending) {
+    return <ClockCircleOutlined className={[mergedClassName, styles.pending].join(' ')} style={iconStyle} />;
+  }
+
   return (
     <LoadingOutlined
       spin
-      className={[mergedClassName, styles.loading].join(' ')}
+      className={[mergedClassName, styles.running].join(' ')}
       style={iconStyle}
     />
   );
 }
-
