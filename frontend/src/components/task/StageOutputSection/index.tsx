@@ -1,5 +1,6 @@
 import { Card, Empty, Space, Typography } from 'antd';
-import type { TaskStageOutput } from '../../../types';
+import { ImageList } from '../../common/ImageList';
+import type { AssetResource, TaskStageOutput } from '../../../types';
 import { stringifyTaskOutput } from '../../../utils/task';
 import styles from './index.module.less';
 
@@ -9,12 +10,48 @@ interface StageOutputSectionProps {
   output: TaskStageOutput | null;
 }
 
+function getImageGeneratingPreviewImages(output: TaskStageOutput): AssetResource[] {
+  if (output.stageName !== 'image_generating' || !Array.isArray(output.output)) {
+    return [];
+  }
+
+  return output.output.flatMap((item, index) => {
+    if (!item || typeof item !== 'object') {
+      return [];
+    }
+
+    const record = item as {
+      shotId?: unknown;
+      image?: unknown;
+    };
+
+    if (typeof record.image !== 'string' || !record.image.trim()) {
+      return [];
+    }
+
+    const shotId = typeof record.shotId === 'string' && record.shotId.trim()
+      ? record.shotId.trim()
+      : `shot_${index + 1}`;
+
+    return [{
+      _id: `stage-output-image-${shotId}`,
+      name: `${shotId}.png`,
+      mimeType: 'image/png',
+      size: 0,
+      url: record.image,
+      createdAt: output.generatedAt,
+    }];
+  });
+}
+
 export function StageOutputSection(props: StageOutputSectionProps) {
   const { output } = props;
 
   if (!output) {
     return null;
   }
+
+  const previewImages = getImageGeneratingPreviewImages(output);
 
   return (
     <Space direction="vertical" size={16} className={styles.root}>
@@ -33,6 +70,12 @@ export function StageOutputSection(props: StageOutputSectionProps) {
           <pre>{stringifyTaskOutput(output.output)}</pre>
         </Paragraph>
       </Card>
+
+      {previewImages.length > 0 ? (
+        <Card variant="borderless" className={styles.card} title="生成的分镜图预览">
+          <ImageList images={previewImages} maxVisibleCount={previewImages.length} />
+        </Card>
+      ) : null}
     </Space>
   );
 }

@@ -2,6 +2,7 @@ import { Card, Collapse, Descriptions, Empty, Space, Tag, Typography } from 'ant
 import { TASK_STAGE_TAG_COLOR_MAP, TaskStageStatus } from '../../../constants/task';
 import type { Task } from '../../../types';
 import {
+  formatTaskTimestamp,
   getTaskStageOutput,
   getTaskStageLabel,
   getTaskStageStatusLabel,
@@ -59,12 +60,12 @@ export function TaskStagePanel(props: TaskStagePanelProps) {
                     {
                       key: 'startedAt',
                       label: '开始时间',
-                      children: stage.startedAt ?? '--',
+                      children: formatTaskTimestamp(stage.startedAt),
                     },
                     {
                       key: 'finishedAt',
                       label: '完成时间',
-                      children: stage.finishedAt ?? '--',
+                      children: formatTaskTimestamp(stage.finishedAt),
                     },
                     {
                       key: 'error',

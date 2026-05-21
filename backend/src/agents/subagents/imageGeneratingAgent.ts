@@ -1,54 +1,57 @@
 import { fornaxExecute } from '../../fornax/llm';
 import type { ImageGeneratingResult, ImagePromptGeneratingResult, Task } from '../../types';
-import { tryParseAgentJson } from '../../utils/agentOutput';
 import { AppError, toAppError } from '../../utils/appError';
 import { getStageResult } from '../../utils/getStageResult';
 import { sanitizeHttpUrl } from '../../utils/url';
 
 const PROMPT_KEY = 'demo.image_generate_agent.prompt';
 
-function isImageGeneratingResult(value: unknown): value is ImageGeneratingResult {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  const record = value as Record<string, unknown>;
-  return (
-    typeof record.shotId === 'string' &&
-    (typeof record.image === 'string' || typeof record.imageURL === 'string')
-  );
-}
+type FornaxMessagePart = {
+  type?: unknown;
+  image_url?: {
+    url?: unknown;
+  };
+};
 
-function buildImageGeneratingResultFromJson(value: unknown): ImageGeneratingResult[] | null {
-  const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
-  const nestedImages =
-    Array.isArray(record?.images)
-      ? record.images
-      : Array.isArray(record?.results)
-        ? record.results
-        : null;
-  const imagesValue = Array.isArray(value)
-    ? value.filter(isImageGeneratingResult)
-    : nestedImages
-      ? nestedImages.filter(isImageGeneratingResult)
-      : [];
-
-  if (imagesValue.length === 0) {
+function buildImageGeneratingResultFromParts(raw: unknown): ImageGeneratingResult[] | null {
+  if (!raw || typeof raw !== 'object') {
     return null;
   }
 
-  return imagesValue.map((image, index) => {
-    const imageRecord = image as unknown as { imageURL?: string };
+  const record = raw as {
+    choices?: Array<{
+      message?: {
+        parts?: unknown;
+      };
+    }>;
+  };
+  const parts = record.choices?.[0]?.message?.parts;
 
-    return {
-      shotId: image.shotId.trim() || `shot_${index + 1}`,
-      image:
-        typeof image.image === 'string' && image.image.trim()
-          ? sanitizeHttpUrl(image.image)
-          : typeof imageRecord.imageURL === 'string' && imageRecord.imageURL.trim()
-            ? sanitizeHttpUrl(imageRecord.imageURL)
-            : '',
-    };
+  if (!Array.isArray(parts)) {
+    return null;
+  }
+
+  let imageIndex = 0;
+  const results = parts.flatMap((part) => {
+    if (!part || typeof part !== 'object') {
+      return [];
+    }
+    const partRecord = part as FornaxMessagePart;
+    if (partRecord.type !== 'image_url' || typeof partRecord.image_url?.url !== 'string') {
+      return [];
+    }
+    const image = sanitizeHttpUrl(partRecord.image_url.url);
+    if (!image) {
+      return [];
+    }
+    imageIndex += 1;
+    return [{
+      shotId: `shot_${imageIndex}`,
+      image,
+    }];
   });
+  
+  return results.length > 0 ? results : null;
 }
 
 // 分镜图生成agent
@@ -64,10 +67,7 @@ export async function runImageGeneratingAgent(task: Task) {
       callOptions: {},
     });
 
-    const result =
-      response.ok && response.text
-        ? buildImageGeneratingResultFromJson(tryParseAgentJson(response.text))
-        : null;
+    const result = response.ok ? buildImageGeneratingResultFromParts(response.raw) : null;
 
     if (!result || result.length === 0) {
       throw new AppError('fornax_image_generating_result_invalid_schema', 502);
