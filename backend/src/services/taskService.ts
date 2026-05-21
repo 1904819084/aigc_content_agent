@@ -1,7 +1,7 @@
 import { createTaskEntity, resetTaskForRun } from '../domain/task/taskFactory';
 import { Injectable } from '@gulux/gulux';
 import { createTaskGraph } from '../agents/taskGraph/createTaskGraph';
-import { TaskPipelineRunner } from '../agents/taskPipelineRunner';
+import { TaskRunner } from '../agents/taskRunner';
 import { MongoTaskRepository } from '../data/mongoTaskRepository';
 import type { TaskBrief, TaskListQuery } from '../types';
 import { AppError } from '../utils/appError';
@@ -9,7 +9,7 @@ import { isTaskWithinDateRange } from '../utils/taskQuery';
 
 const taskRepository = new MongoTaskRepository();
 const taskGraph = createTaskGraph(taskRepository);
-const taskPipelineRunner = new TaskPipelineRunner(taskRepository, taskGraph);
+const taskRunner = new TaskRunner(taskRepository, taskGraph);
 
 @Injectable()
 export default class TaskService {
@@ -49,7 +49,7 @@ export default class TaskService {
       throw new AppError('task_already_started', 400);
     }
     const resetTask = await taskRepository.save(resetTaskForRun(task));
-    taskPipelineRunner.start(resetTask._id);
+    taskRunner.start(resetTask._id);
     return resetTask;
   }
 }

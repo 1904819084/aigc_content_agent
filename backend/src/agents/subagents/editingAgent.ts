@@ -30,7 +30,7 @@ export async function runEditingAgent(task: Task) {
       promptKey: PROMPT_KEY,
       variables: {
         video_script: JSON.stringify(script, null, 2),
-        VideoList: JSON.stringify(videoList, null, 2),
+        videoList: JSON.stringify(videoList, null, 2),
       },
       callOptions: {},
     });

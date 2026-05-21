@@ -1,4 +1,4 @@
-import { CheckCircleFilled, ClockCircleOutlined, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, ClockCircleOutlined, CloseCircleFilled, Loading3QuartersOutlined } from '@ant-design/icons';
 import type { CSSProperties } from 'react';
 import { TaskStageStatus, type TaskStatus } from '../../../constants/task';
 import styles from './index.module.less';
@@ -29,7 +29,7 @@ export function StatusIcon(props: StatusIconProps) {
   }
 
   return (
-    <LoadingOutlined
+    <Loading3QuartersOutlined
       spin
       className={[mergedClassName, styles.running].join(' ')}
       style={iconStyle}

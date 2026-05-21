@@ -2,7 +2,7 @@ import type { CompiledStateGraph } from '@langchain/langgraph';
 import { updateTaskStatus } from '../domain/task/taskPipeline';
 import type { TaskRepository } from '../types';
 
-export class TaskPipelineRunner {
+export class TaskRunner {
   private readonly taskRepository: TaskRepository;
   private readonly taskGraph: CompiledStateGraph<any, any, any, any, any, any>;
 
@@ -28,8 +28,6 @@ export class TaskPipelineRunner {
     try {
       await this.taskGraph.invoke({
         _id,
-        currentStage: null,
-        error: null,
       });
 
       const latestTask = await this.taskRepository.findById(_id);

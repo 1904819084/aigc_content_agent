@@ -54,9 +54,9 @@ export async function runScriptGeneratingAgent(task: Task) {
     const response = await fornaxExecute({
       promptKey: PROMPT_KEY,
       variables: {
-        productName: brief.productName,
-        productImage: brief.productImages || undefined,
-        videoPrompt: brief.videoPrompt || '',
+        product_name: brief.productName,
+        product_images: brief.productImages || undefined,
+        add_prompt: brief.inputPrompt || '',
       },
       callOptions: {},
     });
@@ -80,7 +80,7 @@ export async function runScriptGeneratingAgent(task: Task) {
       input: {
         productName: brief.productName,
         productImage: brief.productImages || undefined,
-        videoPrompt: brief.videoPrompt ? brief.videoPrompt : '无补充提示词'
+        inputPrompt: brief.inputPrompt ? brief.inputPrompt : '无输入提示词',
       },
       output: result,
     };

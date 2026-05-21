@@ -24,15 +24,15 @@ export function isTaskBriefValid(payload: unknown): payload is TaskBrief {
   const currentPayload = payload as Partial<TaskBrief> | null;
   const hasValidProductName =
     typeof currentPayload?.productName === 'string' && currentPayload.productName.trim().length > 0;
-  const hasValidVideoPrompt =
-    currentPayload?.videoPrompt === undefined || typeof currentPayload.videoPrompt === 'string';
+  const hasValidInputPrompt =
+    currentPayload?.inputPrompt === undefined || typeof currentPayload.inputPrompt === 'string';
   const hasValidProductImages =
     currentPayload?.productImages === undefined ||
     (Array.isArray(currentPayload.productImages) &&
       currentPayload.productImages.length <= 3 &&
       currentPayload.productImages.every(isTaskAssetValid));
 
-  return hasValidProductName && hasValidVideoPrompt && hasValidProductImages;
+  return hasValidProductName && hasValidInputPrompt && hasValidProductImages;
 }
 
 // 标准化任务简要描述
@@ -49,6 +49,6 @@ export function normalizeTaskBrief(payload: TaskBrief): TaskBrief {
           createdAt: item.createdAt.trim(),
         }))
       : [],
-    videoPrompt: typeof payload.videoPrompt === 'string' ? payload.videoPrompt.trim() : '',
+    inputPrompt: typeof payload.inputPrompt === 'string' ? payload.inputPrompt.trim() : '',
   };
 }

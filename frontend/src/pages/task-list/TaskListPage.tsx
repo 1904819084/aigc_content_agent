@@ -63,7 +63,7 @@ export function TaskListPage() {
         <PageHero
           eyebrow="AIGC Short Video Agent"
           title="短视频任务中心"
-          description="管理电商带货短视频任务，基于商品信息、商品图片和补充 Prompt 快速生成完整的 Agent 生产链路。"
+          description="管理电商带货短视频任务，基于商品信息、商品图片和输入的 Prompt 快速生成完整的 Agent 生产链路。"
           actions={
             <Space style={{ marginTop: 20 }} wrap>
               <Button

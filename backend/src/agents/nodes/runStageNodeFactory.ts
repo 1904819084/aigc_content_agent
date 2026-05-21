@@ -3,8 +3,6 @@ import { createStageOutput } from '../../utils/createStageOutput';
 
 type TaskGraphState = {
   _id: string;
-  currentStage: TaskStageName | null;
-  error: string | null;
 };
 
 type StageAgent = (task: Task) => Promise<{
@@ -73,11 +71,9 @@ export function createRunStageNode(
 
       const outputData = await stageAgent(task);
       await setStageCompleted(taskRepository, _id, stageName, outputData);
-
-      return {
-        currentStage: stageName,
-        error: null,
-      };
+      // DAG 并发分支已经把阶段状态写入 Mongo，不再回写共享 graph state，
+      // 避免 LangGraph 在同一步收到多个 currentStage/error 更新而报并发冲突。
+      return {};
     } catch (error) {
       await setStageFailed(taskRepository, _id, stageName, error);
       throw error instanceof Error ? error : new Error('unknown_error');

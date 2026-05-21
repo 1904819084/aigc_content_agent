@@ -90,9 +90,9 @@ export function TaskDetailPage() {
                       children: <ImageList images={currentTask.brief.productImages} />,
                     },
                     {
-                      key: 'videoPrompt',
-                      label: '短视频 Prompt',
-                      children: currentTask.brief.videoPrompt || '未填写',
+                      key: 'inputPrompt',
+                      label: '输入的 Prompt',
+                      children: currentTask.brief.inputPrompt || '未填写',
                     },
                     {
                       key: '_id',

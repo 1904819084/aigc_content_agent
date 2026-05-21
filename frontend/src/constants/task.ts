@@ -82,6 +82,6 @@ export function createDefaultTaskBrief() {
   return {
     productName: '',
     productImages: [],
-    videoPrompt: '',
+    inputPrompt: '',
   };
 }

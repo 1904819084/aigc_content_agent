@@ -1,6 +1,5 @@
 import {
   Background,
-  Position,
   ReactFlow,
   ReactFlowProvider,
   type EdgeTypes,
@@ -11,9 +10,17 @@ import '@xyflow/react/dist/style.css';
 import { Typography } from 'antd';
 import { useMemo } from 'react';
 import { useEdgeRouting } from 'reactflow-edge-routing';
-import { TASK_STAGE_TAG_COLOR_MAP, TaskStageName, TaskStageStatus } from '../../../constants/task';
+import { TASK_STAGE_TAG_COLOR_MAP, TaskStageStatus } from '../../../constants/task';
 import type { Task } from '../../../types';
 import { getTaskStageLabel, getTaskStageStatusLabel } from '../../../utils/task';
+import {
+  STAGE_FLOW_DEPENDENCIES,
+  getStageCanvasSize,
+  getStageEdgeColor,
+  getStageLayout,
+  getStageNodeSize,
+  getStageVisualStyle,
+} from '../../../utils/stageFlow';
 import { StatusIcon } from '../../common/StatusIcon';
 import { StatusTag } from '../../common/StatusTag';
 import { RoutedStageEdge } from './RoutedStageEdge';
@@ -23,144 +30,16 @@ const { Text } = Typography;
 const EDGE_TYPES: EdgeTypes = {
   routed: RoutedStageEdge,
 };
-
-const STAGE_NODE_WIDTH = 164;
-const STAGE_NODE_HEIGHT = 88;
-const STAGE_NODE_GAP_X = 26;
-const STAGE_NODE_GAP_Y = 68;
-const STAGE_CANVAS_PADDING_X = 12;
-const STAGE_CANVAS_PADDING_Y = 26;
-const STAGE_NODE_X_STEP = STAGE_NODE_WIDTH + STAGE_NODE_GAP_X;
-const STAGE_NODE_Y_STEP = STAGE_NODE_HEIGHT + STAGE_NODE_GAP_Y;
-const STAGE_CANVAS_EXTRA_RIGHT = 72;
-
-type StageLayout = {
-  x: number;
-  y: number;
-  sourcePosition: Position;
-  targetPosition: Position;
-};
-
-const STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
-  [TaskStageName.ScriptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.StoryboardGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.ImagePromptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.ImageGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 3,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.VideoPromptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP * 2,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.VideoGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 4,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.Editing]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 5,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.QaReviewing]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 6,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-};
-
-const STAGE_FLOW_DEPENDENCIES: Array<[TaskStageName, TaskStageName]> = [
-  [TaskStageName.ScriptGenerating, TaskStageName.StoryboardGenerating],
-  [TaskStageName.StoryboardGenerating, TaskStageName.ImagePromptGenerating],
-  [TaskStageName.StoryboardGenerating, TaskStageName.VideoPromptGenerating],
-  [TaskStageName.ImagePromptGenerating, TaskStageName.ImageGenerating],
-  [TaskStageName.ImageGenerating, TaskStageName.VideoGenerating],
-  [TaskStageName.VideoPromptGenerating, TaskStageName.VideoGenerating],
-  [TaskStageName.VideoGenerating, TaskStageName.Editing],
-  [TaskStageName.Editing, TaskStageName.QaReviewing],
-];
-
-function getStageColor(status: TaskStageStatus) {
-  if (status === TaskStageStatus.Completed) {
-    return {
-      stroke: '#16a34a',
-      softStroke: 'rgba(22, 163, 74, 0.2)',
-      background: 'linear-gradient(180deg, rgba(240, 253, 244, 0.96) 0%, rgba(220, 252, 231, 0.84) 100%)',
-      shadow: '0 18px 36px rgba(34, 197, 94, 0.12)',
-      cardClassName: styles.nodeSuccess,
-    };
-  }
-
-  if (status === TaskStageStatus.Failed) {
-    return {
-      stroke: '#dc2626',
-      softStroke: 'rgba(220, 38, 38, 0.2)',
-      background: 'linear-gradient(180deg, rgba(254, 242, 242, 0.98) 0%, rgba(254, 226, 226, 0.86) 100%)',
-      shadow: '0 18px 36px rgba(239, 68, 68, 0.12)',
-      cardClassName: styles.nodeFailure,
-    };
-  }
-
-  return {
-    stroke: '#94a3b8',
-    softStroke: 'rgba(148, 163, 184, 0.22)',
-    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 249, 0.92) 100%)',
-    shadow: '0 14px 30px rgba(148, 163, 184, 0.12)',
-    cardClassName: styles.nodePending,
-  };
-}
-
-function getStageLayout(stageName: TaskStageName): StageLayout {
-  return STAGE_LAYOUT_MAP[stageName];
-}
-
-function getEdgeColor(sourceStatus: TaskStageStatus, targetStatus: TaskStageStatus) {
-  if (sourceStatus === TaskStageStatus.Failed || targetStatus === TaskStageStatus.Failed) {
-    return '#dc2626';
-  }
-
-  if (sourceStatus === TaskStageStatus.Completed && targetStatus === TaskStageStatus.Completed) {
-    return '#16a34a';
-  }
-
-  return '#94a3b8';
-}
-
-function getCanvasSize(task: Task) {
-  const layouts = task.stages.map((stage) => getStageLayout(stage.name));
-  const maxX = Math.max(...layouts.map((layout) => layout.x), STAGE_CANVAS_PADDING_X);
-  const maxY = Math.max(...layouts.map((layout) => layout.y), STAGE_CANVAS_PADDING_Y);
-
-  return {
-    width: maxX + STAGE_NODE_WIDTH + STAGE_CANVAS_PADDING_X + STAGE_CANVAS_EXTRA_RIGHT,
-    height: maxY + STAGE_NODE_HEIGHT + STAGE_CANVAS_PADDING_Y,
-  };
-}
+const STAGE_NODE_STYLE_CLASS_MAP = {
+  success: styles.nodeSuccess,
+  failure: styles.nodeFailure,
+  pending: styles.nodePending,
+  running: styles.nodeRunningTone,
+} as const;
 
 function buildStageFlowNodes(task: Task): Node[] {
+  const stageNodeSize = getStageNodeSize();
+
   return task.stages.map((stage, index) => ({
     id: stage.name,
     position: getStageLayout(stage.name),
@@ -173,7 +52,7 @@ function buildStageFlowNodes(task: Task): Node[] {
         <div
           className={[
             styles.stageNodeContent,
-            getStageColor(stage.status).cardClassName,
+            STAGE_NODE_STYLE_CLASS_MAP[getStageVisualStyle(stage.status).tone],
             stage.status === TaskStageStatus.Running ? styles.nodeRunning : '',
           ].join(' ')}
         >
@@ -196,13 +75,13 @@ function buildStageFlowNodes(task: Task): Node[] {
       ),
     },
     style: {
-      width: STAGE_NODE_WIDTH,
-      minHeight: STAGE_NODE_HEIGHT,
+      width: stageNodeSize.width,
+      minHeight: stageNodeSize.height,
       padding: 0,
       borderRadius: 24,
-      border: `1px solid ${getStageColor(stage.status).softStroke}`,
-      boxShadow: getStageColor(stage.status).shadow,
-      background: getStageColor(stage.status).background,
+      border: `1px solid ${getStageVisualStyle(stage.status).softStroke}`,
+      boxShadow: getStageVisualStyle(stage.status).shadow,
+      background: getStageVisualStyle(stage.status).background,
     },
   }));
 }
@@ -220,7 +99,7 @@ function buildStageFlowEdges(task: Task): Edge[] {
 
     const sourceLayout = getStageLayout(sourceStageName);
     const targetLayout = getStageLayout(targetStageName);
-    const edgeColor = getEdgeColor(sourceStage.status, targetStage.status);
+    const edgeColor = getStageEdgeColor(sourceStage.status, targetStage.status);
     return {
       id: `${sourceStageName}-${targetStageName}`,
       source: sourceStageName,
@@ -249,7 +128,7 @@ interface StageFlowGraphProps {
 
 export function StageFlowGraph(props: StageFlowGraphProps) {
   const { task } = props;
-  const canvasSize = getCanvasSize(task);
+  const canvasSize = getStageCanvasSize(task);
   const nodes = useMemo(() => buildStageFlowNodes(task), [task]);
   const edges = useMemo(() => buildStageFlowEdges(task), [task]);
 
@@ -269,9 +148,8 @@ export function StageFlowGraph(props: StageFlowGraphProps) {
       <div className={styles.flowHeader}>
         <div>
           <Text strong className={styles.flowTitle}>
-            Agent Pipeline
+            Agent 运行流程
           </Text>
-          <Text className={styles.flowDescription}>按 DAG 依赖展示并发分叉与汇合，支持横向滚动查看完整链路</Text>
         </div>
         <div className={styles.legend}>
           <span className={styles.legendItem}>

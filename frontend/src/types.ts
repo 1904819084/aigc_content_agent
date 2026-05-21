@@ -12,7 +12,7 @@ export interface AssetResource {
 export interface TaskBrief {
   productName: string;
   productImages: AssetResource[];
-  videoPrompt: string;
+  inputPrompt: string;
 }
 
 export interface TaskStage {

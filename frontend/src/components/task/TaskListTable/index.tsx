@@ -47,8 +47,8 @@ export function TaskListTable(props: TaskListTableProps) {
     },
     {
       title: '输入的 Prompt',
-      dataIndex: ['brief', 'videoPrompt'],
-      key: 'videoPrompt',
+      dataIndex: ['brief', 'inputPrompt'],
+      key: 'inputPrompt',
       width: 320,
       render: (value: string) => (
         <Text type="secondary" className={styles.promptPreview}>
@@ -104,7 +104,7 @@ export function TaskListTable(props: TaskListTableProps) {
       locale={{
         emptyText: (
           <Space direction="vertical" size={8}>
-            <Text type="secondary">暂时还没有任务，先创建一个新的带货短视频任务。</Text>
+            <Text type="secondary">暂时还没有任务，先创建一个新的AIGC内容生成任务。</Text>
           </Space>
         ),
       }}

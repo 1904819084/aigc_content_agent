@@ -49,10 +49,10 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
     });
   }
 
-  function handleVideoPromptChange(event: ChangeEvent<HTMLTextAreaElement>) {
+  function handleInputPromptChange(event: ChangeEvent<HTMLTextAreaElement>) {
     onChange({
       ...draftTask,
-      videoPrompt: event.target.value,
+      inputPrompt: event.target.value,
     });
   }
 
@@ -117,13 +117,13 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
               <p className="ant-upload-hint">最多 3 张，当前已选择 {fileList.length} 张</p>
             </Upload.Dragger>
           </Form.Item>
-          <Form.Item label="补充Prompt" name="videoPrompt" style={{ marginBottom: 0 }}>
+          <Form.Item label="输入的 Prompt" name="inputPrompt" style={{ marginBottom: 0 }}>
             <TextArea
-              name="videoPrompt"
-              value={draftTask.videoPrompt}
+              name="inputPrompt"
+              value={draftTask.inputPrompt}
               placeholder="例如：偏高级感美妆广告风，突出遮瑕前后对比和上脸质感。"
               autoSize={{ minRows: 4, maxRows: 6 }}
-              onChange={handleVideoPromptChange}
+              onChange={handleInputPromptChange}
             />
           </Form.Item>
         </Form>

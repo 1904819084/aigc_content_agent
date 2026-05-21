@@ -30,7 +30,7 @@ export interface UploadedAssetFile {
 export interface TaskBrief {
   productName: string;
   productImages: AssetResource[];
-  videoPrompt: string;
+  inputPrompt: string;
 }
 
 export interface TaskListQuery {

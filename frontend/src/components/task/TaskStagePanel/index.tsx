@@ -37,7 +37,7 @@ export function TaskStagePanel(props: TaskStagePanelProps) {
         <StageFlowGraph task={task} />
       </Card>
 
-      <Card variant="borderless" title="阶段详情" className={sectionCardClassNames}>
+      <Card variant="borderless" title="阶段输出详情" className={sectionCardClassNames}>
         <Collapse
           accordion
           items={task.stages.map((stage) => ({
