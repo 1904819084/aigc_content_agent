@@ -1,12 +1,19 @@
+export enum TaskType {
+  ShortVideo = 'short_video',
+  ImageText = 'image_text',
+}
+
 export enum TaskStageName {
   ScriptGenerating = 'script_generating',
   StoryboardGenerating = 'storyboard_generating',
   ImagePromptGenerating = 'image_prompt_generating',
   ImageGenerating = 'image_generating',
+  ImageQaReviewing = 'image_qa_reviewing',
   VideoPromptGenerating = 'video_prompt_generating',
   VideoGenerating = 'video_generating',
+  VideoQaReviewing = 'video_qa_reviewing',
   Editing = 'editing',
-  QaReviewing = 'qa_reviewing',
+  EditingQaReviewing = 'editing_qa_reviewing',
 }
 
 export enum TaskStageStatus {
@@ -28,10 +35,12 @@ export const TASK_STAGE_LABELS: Record<TaskStageName, string> = {
   [TaskStageName.StoryboardGenerating]: '分镜脚本生成',
   [TaskStageName.ImagePromptGenerating]: '分镜图提示词生成',
   [TaskStageName.ImageGenerating]: '分镜图生成',
+  [TaskStageName.ImageQaReviewing]: '分镜图质检',
   [TaskStageName.VideoPromptGenerating]: '分镜视频提示词生成',
   [TaskStageName.VideoGenerating]: '分镜视频生成',
+  [TaskStageName.VideoQaReviewing]: '分镜视频质检',
   [TaskStageName.Editing]: '分镜视频混剪成片',
-  [TaskStageName.QaReviewing]: '短视频内容质检',
+  [TaskStageName.EditingQaReviewing]: '短视频最终成片质检',
 };
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
@@ -78,10 +87,16 @@ export const TASK_STATUS_TAG_COLOR_MAP: Record<
   [TaskStatus.Failed]: 'error',
 };
 
+export const TASK_TYPE_LABELS: Record<TaskType, string> = {
+  [TaskType.ShortVideo]: '短视频',
+  [TaskType.ImageText]: '图文',
+};
+
 export function createDefaultTaskBrief() {
   return {
     productName: '',
     productImages: [],
     inputPrompt: '',
+    taskType: TaskType.ShortVideo,
   };
 }

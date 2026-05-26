@@ -1,18 +1,36 @@
-import type { Task, TaskStage, TaskStageName, TaskStatus } from '../../types';
+import type { Task, TaskStage, TaskStageName, TaskStatus, TaskType } from '../../types';
 
-export const TASK_STAGE_NAMES: TaskStageName[] = [
+// 短视频任务全链路阶段。
+export const SHORT_VIDEO_STAGE_NAMES: TaskStageName[] = [
   'script_generating',
   'storyboard_generating',
   'image_prompt_generating',
   'image_generating',
+  'image_qa_reviewing',
   'video_prompt_generating',
   'video_generating',
+  'video_qa_reviewing',
   'editing',
-  'qa_reviewing',
+  'editing_qa_reviewing',
 ];
 
-export function createInitialTaskStages(): TaskStage[] {
-  return TASK_STAGE_NAMES.map((name) => ({
+// 图文任务全链路阶段。
+export const IMAGE_TEXT_STAGE_NAMES: TaskStageName[] = [
+  'script_generating',
+  'image_prompt_generating',
+  'image_generating',
+  'image_qa_reviewing',
+];
+
+//默认导出按短视频链路返回。
+export const TASK_STAGE_NAMES: TaskStageName[] = SHORT_VIDEO_STAGE_NAMES;
+
+export function getTaskStageNames(taskType: TaskType): TaskStageName[] {
+  return taskType === 'image_text' ? IMAGE_TEXT_STAGE_NAMES : SHORT_VIDEO_STAGE_NAMES;
+}
+
+export function createInitialTaskStages(taskType: TaskType = 'short_video'): TaskStage[] {
+  return getTaskStageNames(taskType).map((name) => ({
     name,
     status: 'pending',
     startedAt: null,

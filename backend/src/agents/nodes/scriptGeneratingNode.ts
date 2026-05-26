@@ -1,6 +1,6 @@
-import { createRunStageNode } from './runStageNodeFactory';
+import { createStageNode } from '../taskGraph/createStageNode';
 import { runScriptGeneratingAgent } from '../subagents/scriptGeneratingAgent';
 
 export function createScriptGeneratingNode(taskRepository) {
-  return createRunStageNode(taskRepository, 'script_generating', runScriptGeneratingAgent);
+  return createStageNode(taskRepository, 'script_generating', runScriptGeneratingAgent);
 }

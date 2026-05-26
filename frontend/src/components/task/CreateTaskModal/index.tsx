@@ -1,7 +1,9 @@
 import { InboxOutlined } from '@ant-design/icons';
-import { Form, Input, Modal, Space, Typography, Upload } from 'antd';
+import { Form, Input, Modal, Radio, Space, Typography, Upload } from 'antd';
+import type { RadioChangeEvent } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import { useEffect, useState, type ChangeEvent } from 'react';
+import { TASK_TYPE_LABELS, TaskType } from '../../../constants/task';
 import type { TaskBrief } from '../../../types';
 import styles from './index.module.less';
 
@@ -49,6 +51,13 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
     });
   }
 
+  function handleTaskTypeChange(event: RadioChangeEvent) {
+    onChange({
+      ...draftTask,
+      taskType: event.target.value as TaskType,
+    });
+  }
+
   function handleInputPromptChange(event: ChangeEvent<HTMLTextAreaElement>) {
     onChange({
       ...draftTask,
@@ -71,7 +80,7 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
   return (
     <Modal
       open={open}
-      title="创建带货短视频任务"
+      title="创建电商带货内容生成任务"
       okText={submitting ? '创建中...' : '创建并启动'}
       cancelText="取消"
       onCancel={onCancel}
@@ -83,10 +92,24 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
     >
       <Space direction="vertical" size={20} className={styles.content}>
         <Paragraph type="secondary" className={styles.description}>
-          输入商品信息后，系统会自动启动电商带货短视频
-          Agent，从脚本、分镜到视频混剪与质检全链路生成。
+          选择任务类型并输入商品信息后，系统会自动启动对应的内容生成 Agent。
         </Paragraph>
         <Form layout="vertical">
+          <Form.Item label="任务类型" required>
+            <Radio.Group
+              value={draftTask.taskType}
+              onChange={handleTaskTypeChange}
+              optionType="button"
+              buttonStyle="solid"
+            >
+              <Radio.Button value={TaskType.ShortVideo}>
+                {TASK_TYPE_LABELS[TaskType.ShortVideo]}
+              </Radio.Button>
+              <Radio.Button value={TaskType.ImageText}>
+                {TASK_TYPE_LABELS[TaskType.ImageText]}
+              </Radio.Button>
+            </Radio.Group>
+          </Form.Item>
           <Form.Item label="商品名" required name="productName">
             <Input
               name="productName"

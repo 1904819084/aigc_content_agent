@@ -6,7 +6,6 @@ type StageOutputData = Pick<TaskStageOutput, 'input' | 'output'>;
 export function createStageOutput(stageName: TaskStageName, data: StageOutputData): TaskStageOutput {
   return {
     stageName,
-    version: 'v1',
     generatedAt: new Date().toISOString(),
     input: data.input ?? {},
     output: data.output ?? null,

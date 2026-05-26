@@ -1,4 +1,4 @@
-import type { TaskStageName, TaskStageStatus, TaskStatus } from './constants/task';
+import type { TaskStageName, TaskStageStatus, TaskStatus, TaskType } from './constants/task';
 
 export interface AssetResource {
   _id: string;
@@ -13,6 +13,7 @@ export interface TaskBrief {
   productName: string;
   productImages: AssetResource[];
   inputPrompt: string;
+  taskType: TaskType;
 }
 
 export interface TaskStage {

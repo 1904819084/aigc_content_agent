@@ -20,7 +20,7 @@ function buildEditingResultFromJson(value: unknown): EditingResult | null {
   };
 }
 
-// 分镜视频混剪成片agent
+// 短视频分镜视频混剪成片agent
 export async function runEditingAgent(task: Task) {
   const videoList = getStageResult<VideoGeneratingResult[]>(task, 'video_generating');
   const script = getStageResult<ScriptResult>(task, 'script_generating');

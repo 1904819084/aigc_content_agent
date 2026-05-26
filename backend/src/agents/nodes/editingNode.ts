@@ -1,6 +1,6 @@
-import { createRunStageNode } from './runStageNodeFactory';
+import { createStageNode } from '../taskGraph/createStageNode';
 import { runEditingAgent } from '../subagents/editingAgent';
 
 export function createEditingNode(taskRepository) {
-  return createRunStageNode(taskRepository, 'editing', runEditingAgent);
+  return createStageNode(taskRepository, 'editing', runEditingAgent);
 }

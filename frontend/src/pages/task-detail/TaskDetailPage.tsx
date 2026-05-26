@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, CalendarOutlined, RocketOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Descriptions, Empty, Row, Space, Typography } from 'antd';
+import { Button, Card, Col, Descriptions, Empty, Row, Space, Tag, Typography } from 'antd';
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AppShell } from '../../components/common/AppShell';
@@ -7,7 +7,7 @@ import { ImageList } from '../../components/common/ImageList';
 import { PageHero } from '../../components/common/PageHero';
 import { StatusTag } from '../../components/common/StatusTag';
 import { TaskStagePanel } from '../../components/task/TaskStagePanel';
-import { TASK_STATUS_TAG_COLOR_MAP } from '../../constants/task';
+import { TASK_STATUS_TAG_COLOR_MAP, TASK_TYPE_LABELS, TaskType } from '../../constants/task';
 import { useTaskWorkbench } from '../../hooks/useTaskWorkbench';
 import { getTaskCurrentStageLabel, getTaskStatusLabel } from '../../utils/task';
 
@@ -83,6 +83,18 @@ export function TaskDetailPage() {
                       key: 'productName',
                       label: '商品名',
                       children: currentTask.brief.productName || currentTask.name,
+                    },
+                    {
+                      key: 'taskType',
+                      label: '任务类型',
+                      children: (() => {
+                        const taskType = currentTask.brief.taskType ?? TaskType.ShortVideo;
+                        return (
+                          <Tag color={taskType === TaskType.ImageText ? 'geekblue' : 'purple'}>
+                            {TASK_TYPE_LABELS[taskType]}
+                          </Tag>
+                        );
+                      })(),
                     },
                     {
                       key: 'productImages',

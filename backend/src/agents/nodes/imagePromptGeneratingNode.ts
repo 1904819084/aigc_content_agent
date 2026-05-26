@@ -1,6 +1,6 @@
-import { createRunStageNode } from './runStageNodeFactory';
+import { createStageNode } from '../taskGraph/createStageNode';
 import { runImagePromptGeneratingAgent } from '../subagents/imagePromptGeneratingAgent';
 
 export function createImagePromptGeneratingNode(taskRepository) {
-  return createRunStageNode(taskRepository, 'image_prompt_generating', runImagePromptGeneratingAgent);
+  return createStageNode(taskRepository, 'image_prompt_generating', runImagePromptGeneratingAgent);
 }

@@ -1,5 +1,5 @@
 import { Position } from '@xyflow/react';
-import { TaskStageName, TaskStageStatus } from '../constants/task';
+import { TaskStageName, TaskStageStatus, TaskType } from '../constants/task';
 import type { Task } from '../types';
 
 const STAGE_NODE_WIDTH = 156;
@@ -29,7 +29,7 @@ export type StageVisualStyle = {
   tone: StageVisualTone;
 };
 
-const STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
+const SHORT_VIDEO_STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
   [TaskStageName.ScriptGenerating]: {
     x: STAGE_CANVAS_PADDING_X,
     y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
@@ -54,6 +54,12 @@ const STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
+  [TaskStageName.ImageQaReviewing]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 4,
+    y: STAGE_CANVAS_PADDING_Y,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
   [TaskStageName.VideoPromptGenerating]: {
     x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
     y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP * 2,
@@ -61,39 +67,93 @@ const STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
     targetPosition: Position.Left,
   },
   [TaskStageName.VideoGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 4,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.Editing]: {
     x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 5,
     y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
-  [TaskStageName.QaReviewing]: {
+  [TaskStageName.VideoQaReviewing]: {
     x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 6,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.Editing]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 7,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.EditingQaReviewing]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 8,
     y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
 };
 
-export const STAGE_FLOW_DEPENDENCIES: Array<[TaskStageName, TaskStageName]> = [
+const IMAGE_TEXT_STAGE_LAYOUT_MAP: Partial<Record<TaskStageName, StageLayout>> = {
+  [TaskStageName.ScriptGenerating]: {
+    x: STAGE_CANVAS_PADDING_X,
+    y: STAGE_CANVAS_PADDING_Y,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.ImagePromptGenerating]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP,
+    y: STAGE_CANVAS_PADDING_Y,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.ImageGenerating]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
+    y: STAGE_CANVAS_PADDING_Y,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.ImageQaReviewing]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 3,
+    y: STAGE_CANVAS_PADDING_Y,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+};
+
+const SHORT_VIDEO_STAGE_DEPENDENCIES: Array<[TaskStageName, TaskStageName]> = [
   [TaskStageName.ScriptGenerating, TaskStageName.StoryboardGenerating],
   [TaskStageName.StoryboardGenerating, TaskStageName.ImagePromptGenerating],
   [TaskStageName.StoryboardGenerating, TaskStageName.VideoPromptGenerating],
   [TaskStageName.ImagePromptGenerating, TaskStageName.ImageGenerating],
-  [TaskStageName.ImageGenerating, TaskStageName.VideoGenerating],
+  [TaskStageName.ImageGenerating, TaskStageName.ImageQaReviewing],
+  [TaskStageName.ImageQaReviewing, TaskStageName.VideoGenerating],
   [TaskStageName.VideoPromptGenerating, TaskStageName.VideoGenerating],
-  [TaskStageName.VideoGenerating, TaskStageName.Editing],
-  [TaskStageName.Editing, TaskStageName.QaReviewing],
+  [TaskStageName.VideoGenerating, TaskStageName.VideoQaReviewing],
+  [TaskStageName.VideoQaReviewing, TaskStageName.Editing],
+  [TaskStageName.Editing, TaskStageName.EditingQaReviewing],
 ];
 
-export function getStageLayout(stageName: TaskStageName): StageLayout {
-  return STAGE_LAYOUT_MAP[stageName];
+const IMAGE_TEXT_STAGE_DEPENDENCIES: Array<[TaskStageName, TaskStageName]> = [
+  [TaskStageName.ScriptGenerating, TaskStageName.ImagePromptGenerating],
+  [TaskStageName.ImagePromptGenerating, TaskStageName.ImageGenerating],
+  [TaskStageName.ImageGenerating, TaskStageName.ImageQaReviewing],
+];
+
+export function getStageLayout(taskType: TaskType, stageName: TaskStageName): StageLayout {
+  if (taskType === TaskType.ImageText) {
+    return (
+      IMAGE_TEXT_STAGE_LAYOUT_MAP[stageName] ?? SHORT_VIDEO_STAGE_LAYOUT_MAP[stageName]
+    );
+  }
+  return SHORT_VIDEO_STAGE_LAYOUT_MAP[stageName];
 }
+
+export function getStageDependencies(taskType: TaskType): Array<[TaskStageName, TaskStageName]> {
+  return taskType === TaskType.ImageText
+    ? IMAGE_TEXT_STAGE_DEPENDENCIES
+    : SHORT_VIDEO_STAGE_DEPENDENCIES;
+}
+
+export const STAGE_FLOW_DEPENDENCIES = SHORT_VIDEO_STAGE_DEPENDENCIES;
 
 export function getStageVisualStyle(status: TaskStageStatus): StageVisualStyle {
   if (status === TaskStageStatus.Completed) {
@@ -152,7 +212,10 @@ export function getStageEdgeColor(sourceStatus: TaskStageStatus, targetStatus: T
 }
 
 export function getStageCanvasSize(task: Task) {
-  const layouts = task.stages.map((stage) => getStageLayout(stage.name));
+  const taskType = task.brief?.taskType ?? TaskType.ShortVideo;
+  const layouts = task.stages
+    .map((stage) => getStageLayout(taskType, stage.name))
+    .filter((layout): layout is StageLayout => Boolean(layout));
   const maxX = Math.max(...layouts.map((layout) => layout.x), STAGE_CANVAS_PADDING_X);
   const maxY = Math.max(...layouts.map((layout) => layout.y), STAGE_CANVAS_PADDING_Y);
 

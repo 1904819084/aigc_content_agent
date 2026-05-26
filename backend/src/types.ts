@@ -1,12 +1,16 @@
+export type TaskType = 'short_video' | 'image_text';
+
 export type TaskStageName =
   | 'script_generating'
   | 'storyboard_generating'
   | 'image_prompt_generating'
   | 'image_generating'
+  | 'image_qa_reviewing'
   | 'video_prompt_generating'
   | 'video_generating'
+  | 'video_qa_reviewing'
   | 'editing'
-  | 'qa_reviewing';
+  | 'editing_qa_reviewing';
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed';
 export type TaskStageStatus = 'pending' | 'running' | 'completed' | 'failed';
@@ -31,6 +35,7 @@ export interface TaskBrief {
   productName: string;
   productImages: AssetResource[];
   inputPrompt: string;
+  taskType: TaskType;
 }
 
 export interface TaskListQuery {
@@ -45,7 +50,7 @@ export interface ScriptSection {
   narration: string;
 }
 
-// 剧本生成结果类型
+// 短视频/图文剧本生成结果类型
 export interface ScriptResult {
   title: string;
   hook: string;
@@ -54,7 +59,7 @@ export interface ScriptResult {
   cta: string;
 }
 
-// 分镜脚本生成结果类型
+// 短视频分镜脚本生成结果类型
 export interface StoryboardShotResult {
   shotId: string;
   duration: number;
@@ -65,25 +70,25 @@ export interface StoryboardShotResult {
   cameraMotion: string;
 }
 
-// 分镜图Prompt生成结果类型
+// 短视频分镜图/图文提示词生成结果类型
 export interface ImagePromptGeneratingResult {
   shotId: string;
   imagePrompt: string;
 }
 
-// 分镜图生成结果类型
+// 短视频分镜图/图文生成结果类型
 export interface ImageGeneratingResult {
   shotId: string;
   image: string;
 }
 
-// 分镜视频Prompt生成结果类型
+// 短视频分镜视频Prompt生成结果类型
 export interface VideoPromptGeneratingResult {
   shotId: string;
   videoPrompt: string;
 }
 
-// 分镜视频生成结果类型
+// 短视频分镜视频生成结果类型
 export interface VideoGeneratingResult {
   shotId: string;
   video: string;
@@ -91,18 +96,21 @@ export interface VideoGeneratingResult {
 }
 
 
-// 分镜视频混剪成片结果类型
+// 短视频分镜视频混剪成片结果类型
 export interface EditingResult {
   video: string;
 }
 
 
-// 短视频质检结果类型
+// 内容质检结果类型
+export type QaReviewDecision = 'pass' | 'fail';
+export type QaReviewTargetStage = 'image_generating' | 'video_generating' | 'editing';
 export interface QaReviewResult {
-  result: string;
-  legal: string;
-  unlegal:string;
-  suggestion: string;
+  decision: QaReviewDecision;
+  targetStage: QaReviewTargetStage;
+  score: number;
+  reasons: string;
+  suggestions: string;
 }
 
 export interface TaskStage {
@@ -115,7 +123,6 @@ export interface TaskStage {
 
 export interface TaskStageOutput {
   stageName: TaskStageName;
-  version: 'v1';
   generatedAt: string;
   input: Record<string, unknown>;
   output: unknown;

@@ -38,7 +38,7 @@ function buildVideoPromptResultFromJson(value: unknown): VideoPromptGeneratingRe
   }));
 }
 
-// 分镜视频提示词生成agent
+// 短视频分镜视频提示词生成agent
 export async function runVideoPromptGeneratingAgent(task: Task) {
   const storyboard = getStageResult<StoryboardShotResult[]>(task, 'storyboard_generating');
 

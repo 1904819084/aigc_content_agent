@@ -1,4 +1,6 @@
-import type { AssetResource, TaskBrief } from '../types';
+import type { AssetResource, TaskBrief, TaskType } from '../types';
+
+const VALID_TASK_TYPES: readonly TaskType[] = ['short_video', 'image_text'];
 
 // 校验任务资产是否有效
 export function isTaskAssetValid(asset: unknown): asset is AssetResource {
@@ -31,8 +33,12 @@ export function isTaskBriefValid(payload: unknown): payload is TaskBrief {
     (Array.isArray(currentPayload.productImages) &&
       currentPayload.productImages.length <= 3 &&
       currentPayload.productImages.every(isTaskAssetValid));
+  const hasValidTaskType =
+    currentPayload?.taskType === undefined ||
+    (typeof currentPayload.taskType === 'string' &&
+      VALID_TASK_TYPES.includes(currentPayload.taskType as TaskType));
 
-  return hasValidProductName && hasValidInputPrompt && hasValidProductImages;
+  return hasValidProductName && hasValidInputPrompt && hasValidProductImages && hasValidTaskType;
 }
 
 // 标准化任务简要描述
@@ -50,5 +56,6 @@ export function normalizeTaskBrief(payload: TaskBrief): TaskBrief {
         }))
       : [],
     inputPrompt: typeof payload.inputPrompt === 'string' ? payload.inputPrompt.trim() : '',
+    taskType: VALID_TASK_TYPES.includes(payload.taskType) ? payload.taskType : 'short_video',
   };
 }

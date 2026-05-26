@@ -6,40 +6,18 @@ import { getStageResult } from '../../utils/getStageResult';
 
 const PROMPT_KEY = 'demo.stotyboard_generate_agent.prompt';
 
-function isStoryboardShot(value: unknown): value is StoryboardShotResult {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  const record = value as Record<string, unknown>;
-  return (
-    typeof record.shotId === 'string' &&
-    typeof record.duration === 'number' &&
-    Number.isFinite(record.duration) &&
-    typeof record.shotType === 'string' &&
-    typeof record.visual === 'string' &&
-    typeof record.narration === 'string' &&
-    typeof record.subtitle === 'string' &&
-    typeof record.cameraMotion === 'string'
-  );
-}
-
 
 function buildStoryboardResultFromJson(value: unknown): StoryboardShotResult[] | null {
   const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
-  const nestedShots = Array.isArray(record?.shots) ? record.shots : null;
-  const shotsValue = Array.isArray(value)
-    ? value.filter(isStoryboardShot)
-    : nestedShots
-      ? nestedShots.filter(isStoryboardShot)
-      : [];
+  const Shots = Array.isArray(record?.shots) ? record.shots : null;
 
-  if (shotsValue.length === 0) {
+  if (!Shots) {
     return null;
   }
 
-  return shotsValue.map((shot, index) => ({
+  return Shots.map((shot, index) => ({
     shotId: shot.shotId.trim() || `shot_${index + 1}`,
-    duration: Math.max(1, Math.round(shot.duration)),
+    duration: shot.duration,
     shotType: shot.shotType.trim(),
     visual: shot.visual.trim(),
     narration: shot.narration.trim(),
@@ -48,7 +26,7 @@ function buildStoryboardResultFromJson(value: unknown): StoryboardShotResult[] |
   }));
 }
 
-// 分镜脚本生成agent
+// 短视频分镜脚本生成agent
 export async function runStoryboardGeneratingAgent(task: Task) {
   const script = getStageResult(task, 'script_generating') as ScriptResult;
 
@@ -71,7 +49,7 @@ export async function runStoryboardGeneratingAgent(task: Task) {
     const result =
       buildStoryboardResultFromJson(tryParseAgentJson(response.text)) 
 
-    if (result.length === 0) {
+    if (!result || result.length === 0) {
       throw new AppError('fornax_storyboard_result_invalid_schema', 502);
     }
 

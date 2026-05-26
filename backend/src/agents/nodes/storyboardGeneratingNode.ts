@@ -1,6 +1,6 @@
-import { createRunStageNode } from './runStageNodeFactory';
+import { createStageNode } from '../taskGraph/createStageNode';
 import { runStoryboardGeneratingAgent } from '../subagents/storyboardGeneratingAgent';
 
 export function createStoryboardGeneratingNode(taskRepository) {
-  return createRunStageNode(taskRepository, 'storyboard_generating', runStoryboardGeneratingAgent);
+  return createStageNode(taskRepository, 'storyboard_generating', runStoryboardGeneratingAgent);
 }

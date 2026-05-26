@@ -13,7 +13,7 @@ type FornaxMessagePart = {
   };
 };
 
-function buildImageGeneratingResultFromParts(raw: unknown): ImageGeneratingResult[] | null {
+function buildImageGeneratingResultFromParts(task: Task, raw: unknown): ImageGeneratingResult[] | null {
   if (!raw || typeof raw !== 'object') {
     return null;
   }
@@ -46,7 +46,7 @@ function buildImageGeneratingResultFromParts(raw: unknown): ImageGeneratingResul
     }
     imageIndex += 1;
     return [{
-      shotId: `shot_${imageIndex}`,
+      shotId: task.brief.taskType === 'image_text' ? `image_${imageIndex}` : `shot_${imageIndex}`,
       image,
     }];
   });
@@ -54,20 +54,24 @@ function buildImageGeneratingResultFromParts(raw: unknown): ImageGeneratingResul
   return results.length > 0 ? results : null;
 }
 
-// 分镜图生成agent
+// 短视频分镜图/图文生成agent
 export async function runImageGeneratingAgent(task: Task) {
   const imagePromptList = getStageResult<ImagePromptGeneratingResult[]>(task, 'image_prompt_generating');
-
+   
+  const upstreamInput =
+      task.brief.taskType === 'image_text'
+        ? { ImageText_ImagePromptList: imagePromptList }
+        : { ShortVideo_ImagePromptList: imagePromptList };
   try {
     const response = await fornaxExecute({
       promptKey: PROMPT_KEY,
-      variables: {
-        ImagePromptList: JSON.stringify(imagePromptList, null, 2),
-      },
+      variables: Object.fromEntries(
+        Object.entries(upstreamInput).map(([key, value]) => [key, JSON.stringify(value, null, 2)]),
+      ),
       callOptions: {},
     });
 
-    const result = response.ok ? buildImageGeneratingResultFromParts(response.raw) : null;
+    const result = response.ok ? buildImageGeneratingResultFromParts(task, response.raw) : null;
 
     if (!result || result.length === 0) {
       throw new AppError('fornax_image_generating_result_invalid_schema', 502);
@@ -75,7 +79,7 @@ export async function runImageGeneratingAgent(task: Task) {
 
     return {
       input: {
-        imagePromptList,
+        ...upstreamInput,
       },
       output: result,
     };

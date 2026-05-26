@@ -61,9 +61,9 @@ export function TaskListPage() {
     <AppShell
       header={
         <PageHero
-          eyebrow="AIGC Short Video Agent"
-          title="短视频任务中心"
-          description="管理电商带货短视频任务，基于商品信息、商品图片和输入的 Prompt 快速生成完整的 Agent 生产链路。"
+          eyebrow="AIGC Content Agent"
+          title="AIGC端到端的电商内容生成平台"
+          description="管理电商带货内容任务，基于商品信息、商品图片和输入的 Prompt 快速生成完整的 Agent 生产链路。"
           actions={
             <Space style={{ marginTop: 20 }} wrap>
               <Button

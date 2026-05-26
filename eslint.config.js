@@ -4,6 +4,10 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+
+const tsconfigRootDir = dirname(fileURLToPath(import.meta.url));
 
 export default tseslint.config(
   {
@@ -21,6 +25,9 @@ export default tseslint.config(
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: globals.browser,
+      parserOptions: {
+        tsconfigRootDir,
+      },
     },
     plugins: {
       'react-hooks': reactHooks,
@@ -132,6 +139,9 @@ export default tseslint.config(
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: globals.node,
+      parserOptions: {
+        tsconfigRootDir,
+      },
     },
     rules: {
       'no-console': 'off',

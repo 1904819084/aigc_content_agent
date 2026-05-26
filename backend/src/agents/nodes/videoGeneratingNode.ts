@@ -1,6 +1,6 @@
-import { createRunStageNode } from './runStageNodeFactory';
+import { createStageNode } from '../taskGraph/createStageNode';
 import { runVideoGeneratingAgent } from '../subagents/videoGeneratingAgent';
 
 export function createVideoGeneratingNode(taskRepository) {
-  return createRunStageNode(taskRepository, 'video_generating', runVideoGeneratingAgent);
+  return createStageNode(taskRepository, 'video_generating', runVideoGeneratingAgent);
 }

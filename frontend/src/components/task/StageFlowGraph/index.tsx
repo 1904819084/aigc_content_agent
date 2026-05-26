@@ -10,12 +10,12 @@ import '@xyflow/react/dist/style.css';
 import { Typography } from 'antd';
 import { useMemo } from 'react';
 import { useEdgeRouting } from 'reactflow-edge-routing';
-import { TASK_STAGE_TAG_COLOR_MAP, TaskStageStatus } from '../../../constants/task';
+import { TASK_STAGE_TAG_COLOR_MAP, TaskStageStatus, TaskType } from '../../../constants/task';
 import type { Task } from '../../../types';
 import { getTaskStageLabel, getTaskStageStatusLabel } from '../../../utils/task';
 import {
-  STAGE_FLOW_DEPENDENCIES,
   getStageCanvasSize,
+  getStageDependencies,
   getStageEdgeColor,
   getStageLayout,
   getStageNodeSize,
@@ -39,12 +39,13 @@ const STAGE_NODE_STYLE_CLASS_MAP = {
 
 function buildStageFlowNodes(task: Task): Node[] {
   const stageNodeSize = getStageNodeSize();
+  const taskType = task.brief?.taskType ?? TaskType.ShortVideo;
 
   return task.stages.map((stage, index) => ({
     id: stage.name,
-    position: getStageLayout(stage.name),
-    sourcePosition: getStageLayout(stage.name).sourcePosition,
-    targetPosition: getStageLayout(stage.name).targetPosition,
+    position: getStageLayout(taskType, stage.name),
+    sourcePosition: getStageLayout(taskType, stage.name).sourcePosition,
+    targetPosition: getStageLayout(taskType, stage.name).targetPosition,
     draggable: false,
     selectable: false,
     data: {
@@ -88,8 +89,9 @@ function buildStageFlowNodes(task: Task): Node[] {
 
 function buildStageFlowEdges(task: Task): Edge[] {
   const stageMap = new Map(task.stages.map((stage) => [stage.name, stage]));
+  const taskType = task.brief?.taskType ?? TaskType.ShortVideo;
 
-  return STAGE_FLOW_DEPENDENCIES.flatMap(([sourceStageName, targetStageName]) => {
+  return getStageDependencies(taskType).flatMap(([sourceStageName, targetStageName]) => {
     const sourceStage = stageMap.get(sourceStageName);
     const targetStage = stageMap.get(targetStageName);
 
@@ -97,8 +99,8 @@ function buildStageFlowEdges(task: Task): Edge[] {
       return [];
     }
 
-    const sourceLayout = getStageLayout(sourceStageName);
-    const targetLayout = getStageLayout(targetStageName);
+    const sourceLayout = getStageLayout(taskType, sourceStageName);
+    const targetLayout = getStageLayout(taskType, targetStageName);
     const edgeColor = getStageEdgeColor(sourceStage.status, targetStage.status);
     return {
       id: `${sourceStageName}-${targetStageName}`,

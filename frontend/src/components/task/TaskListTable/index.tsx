@@ -1,8 +1,8 @@
 import { EyeOutlined } from '@ant-design/icons';
-import { Button, Space, Table, Typography } from 'antd';
+import { Button, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { Link } from 'react-router-dom';
-import { TASK_STATUS_TAG_COLOR_MAP } from '../../../constants/task';
+import { TASK_STATUS_TAG_COLOR_MAP, TASK_TYPE_LABELS, TaskType } from '../../../constants/task';
 import type { Task } from '../../../types';
 import { getTaskStatusLabel } from '../../../utils/task';
 import { ImageList } from '../../common/ImageList';
@@ -33,6 +33,20 @@ export function TaskListTable(props: TaskListTableProps) {
       key: 'productName',
       width: 220,
       render: (value: string, task) => <Text strong>{value || task.name}</Text>,
+    },
+    {
+      title: '任务类型',
+      dataIndex: ['brief', 'taskType'],
+      key: 'taskType',
+      width: 110,
+      render: (value: TaskType | undefined) => {
+        const taskType = value ?? TaskType.ShortVideo;
+        return (
+          <Tag color={taskType === TaskType.ImageText ? 'geekblue' : 'purple'}>
+            {TASK_TYPE_LABELS[taskType]}
+          </Tag>
+        );
+      },
     },
     {
       title: '商品图',

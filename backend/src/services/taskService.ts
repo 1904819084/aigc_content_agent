@@ -1,6 +1,7 @@
 import { createTaskEntity, resetTaskForRun } from '../domain/task/taskFactory';
 import { Injectable } from '@gulux/gulux';
-import { createTaskGraph } from '../agents/taskGraph/createTaskGraph';
+import { createImageTextTaskGraph } from '../agents/taskGraph/createImageTextTaskGraph';
+import { createShortVideoTaskGraph } from '../agents/taskGraph/createShortVideoTaskGraph';
 import { TaskRunner } from '../agents/taskRunner';
 import { MongoTaskRepository } from '../data/mongoTaskRepository';
 import type { TaskBrief, TaskListQuery } from '../types';
@@ -8,8 +9,10 @@ import { AppError } from '../utils/appError';
 import { isTaskWithinDateRange } from '../utils/taskQuery';
 
 const taskRepository = new MongoTaskRepository();
-const taskGraph = createTaskGraph(taskRepository);
-const taskRunner = new TaskRunner(taskRepository, taskGraph);
+const shortVideoTaskGraph = createShortVideoTaskGraph(taskRepository);
+const imageTextTaskGraph = createImageTextTaskGraph(taskRepository);
+const shortVideoTaskRunner = new TaskRunner(taskRepository, shortVideoTaskGraph);
+const imageTextTaskRunner = new TaskRunner(taskRepository, imageTextTaskGraph);
 
 @Injectable()
 export default class TaskService {
@@ -49,7 +52,9 @@ export default class TaskService {
       throw new AppError('task_already_started', 400);
     }
     const resetTask = await taskRepository.save(resetTaskForRun(task));
-    taskRunner.start(resetTask._id);
+    const runner =
+      resetTask.brief.taskType === 'image_text' ? imageTextTaskRunner : shortVideoTaskRunner;
+    runner.start(resetTask._id);
     return resetTask;
   }
 }

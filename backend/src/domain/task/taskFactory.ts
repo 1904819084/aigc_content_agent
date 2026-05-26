@@ -10,7 +10,7 @@ export function createTaskEntity(brief: TaskBrief): Task {
     brief,
     status: 'pending',
     currentStage: null,
-    stages: createInitialTaskStages(),
+    stages: createInitialTaskStages(brief.taskType),
     outputs: {},
     createdAt: new Date(timestamp).toISOString(),
     updatedAt: new Date(timestamp).toISOString(),
@@ -23,6 +23,6 @@ export function resetTaskForRun(task: Task): Task {
     status: 'pending',
     currentStage: null,
     outputs: {},
-    stages: createInitialTaskStages(),
+    stages: createInitialTaskStages(task.brief.taskType),
   };
 }
