@@ -72,7 +72,7 @@ export function StageOutputSection(props: StageOutputSectionProps) {
       </Card>
 
       {previewImages.length > 0 ? (
-        <Card variant="borderless" className={styles.card} title="生成的分镜图预览">
+        <Card variant="borderless" className={styles.card} title="生成的图片预览">
           <ImageList images={previewImages} maxVisibleCount={previewImages.length} />
         </Card>
       ) : null}

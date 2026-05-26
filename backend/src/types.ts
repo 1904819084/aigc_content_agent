@@ -119,6 +119,8 @@ export interface TaskStage {
   startedAt: string | null;
   finishedAt: string | null;
   error: string | null;
+  // QA 失败回溯重试次数（仅 *_qa_reviewing 阶段会累加）
+  attempts: number;
 }
 
 export interface TaskStageOutput {
@@ -147,6 +149,10 @@ export interface TaskRepository {
   markStageRunning(_id: string, stageName: TaskStageName): Promise<Task | null>;
   markStageCompleted(_id: string, stageName: TaskStageName, output: TaskStageOutput): Promise<Task | null>;
   markStageFailed(_id: string, stageName: TaskStageName, errorMessage: string): Promise<Task | null>;
+  // QA 失败回溯：累加 QA 阶段 attempts
+  incrementStageAttempts(_id: string, stageName: TaskStageName): Promise<Task | null>;
+  // QA 失败回溯：把指定阶段及其下游已完成阶段重置为 pending，清掉 outputs，方便 graph 重新执行
+  resetStagesFrom(_id: string, stageNames: TaskStageName[]): Promise<Task | null>;
 }
 
 export interface AssetRepository {

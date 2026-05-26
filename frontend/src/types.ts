@@ -22,6 +22,8 @@ export interface TaskStage {
   startedAt: string | null;
   finishedAt: string | null;
   error: string | null;
+  // QA 失败回溯重试次数（仅 *_qa_reviewing 阶段会累加）
+  attempts: number;
 }
 
 export interface TaskStageOutput {

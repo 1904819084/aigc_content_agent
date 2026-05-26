@@ -8,7 +8,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Typography } from 'antd';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useEdgeRouting } from 'reactflow-edge-routing';
 import { TASK_STAGE_TAG_COLOR_MAP, TaskStageStatus, TaskType } from '../../../constants/task';
 import type { Task } from '../../../types';
@@ -59,6 +59,11 @@ function buildStageFlowNodes(task: Task): Node[] {
         >
           <div className={styles.stageNodeHeader}>
             <span className={styles.stageIndex}>0{index + 1}</span>
+            {stage.attempts > 0 ? (
+              <span className={styles.stageRetryBadge} title="QA 失败回溯重试次数">
+                重试 {stage.attempts}
+              </span>
+            ) : null}
             <StatusTag
               status={stage.status}
               color={TASK_STAGE_TAG_COLOR_MAP[stage.status]}
@@ -69,7 +74,7 @@ function buildStageFlowNodes(task: Task): Node[] {
           </div>
           <div className={styles.stageNodeBody}>
             <Text strong className={styles.stageNodeTitle}>
-              {getTaskStageLabel(stage.name)}
+              {getTaskStageLabel(stage.name, taskType)}
             </Text>
           </div>
         </div>
@@ -133,6 +138,22 @@ export function StageFlowGraph(props: StageFlowGraphProps) {
   const canvasSize = getStageCanvasSize(task);
   const nodes = useMemo(() => buildStageFlowNodes(task), [task]);
   const edges = useMemo(() => buildStageFlowEdges(task), [task]);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const [hasOverflow, setHasOverflow] = useState(false);
+
+  useEffect(() => {
+    const canvasEl = canvasRef.current;
+    if (!canvasEl) {
+      return;
+    }
+    const updateOverflow = () => {
+      setHasOverflow(canvasEl.scrollWidth - canvasEl.clientWidth > 1);
+    };
+    updateOverflow();
+    const observer = new ResizeObserver(updateOverflow);
+    observer.observe(canvasEl);
+    return () => observer.disconnect();
+  }, [canvasSize.width]);
 
   useEdgeRouting(nodes, edges, {
     connectorType: 'bezier',
@@ -174,8 +195,10 @@ export function StageFlowGraph(props: StageFlowGraphProps) {
       </div>
 
       <div className={styles.flowViewport}>
-        <div className={styles.flowViewportHint}>左右滚动查看完整流程</div>
-        <div className={styles.flowCanvas}>
+        {hasOverflow ? (
+          <div className={styles.flowViewportHint}>左右滚动查看完整流程</div>
+        ) : null}
+        <div className={styles.flowCanvas} ref={canvasRef}>
           <div
             className={styles.flowCanvasInner}
             style={{ width: canvasSize.width, height: canvasSize.height + 12 }}

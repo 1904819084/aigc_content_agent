@@ -10,6 +10,7 @@ import {
 } from '../../../utils/task';
 import { StatusIcon } from '../../common/StatusIcon';
 import { StatusTag } from '../../common/StatusTag';
+import { FinalPreview } from '../FinalPreview';
 import { StageFlowGraph } from '../StageFlowGraph';
 import { StageOutputSection } from '../StageOutputSection';
 import styles from './index.module.less';
@@ -45,7 +46,7 @@ export function TaskStagePanel(props: TaskStagePanelProps) {
             key: stage.name,
             label: (
               <Space size={12}>
-                <Text strong>{getTaskStageLabel(stage.name)}</Text>
+                <Text strong>{getTaskStageLabel(stage.name, task.brief?.taskType)}</Text>
                 <StatusTag status={stage.status} color={TASK_STAGE_TAG_COLOR_MAP[stage.status]}>
                   {getTaskStageStatusLabel(stage.status)}
                 </StatusTag>
@@ -66,6 +67,16 @@ export function TaskStagePanel(props: TaskStagePanelProps) {
                       key: 'finishedAt',
                       label: '完成时间',
                       children: formatTaskTimestamp(stage.finishedAt),
+                    },
+                    {
+                      key: 'attempts',
+                      label: '回溯重试次数',
+                      children:
+                        stage.attempts > 0 ? (
+                          <Tag color="warning">{stage.attempts}</Tag>
+                        ) : (
+                          <Tag color="default">0</Tag>
+                        ),
                     },
                     {
                       key: 'error',
@@ -101,6 +112,8 @@ export function TaskStagePanel(props: TaskStagePanelProps) {
           }))}
         />
       </Card>
+
+      <FinalPreview task={task} />
     </Space>
   );
 }

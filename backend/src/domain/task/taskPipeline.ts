@@ -36,6 +36,7 @@ export function createInitialTaskStages(taskType: TaskType = 'short_video'): Tas
     startedAt: null,
     finishedAt: null,
     error: null,
+    attempts: 0,
   }));
 }
 

@@ -111,4 +111,57 @@ export class MongoTaskRepository implements TaskRepository {
       stageName,
     );
   }
+
+  async incrementStageAttempts(_id: string, stageName: TaskStageName): Promise<Task | null> {
+    const now = new Date().toISOString();
+    const collection = await this.getCollection();
+    const result = await collection.findOneAndUpdate(
+      { _id },
+      {
+        $set: { updatedAt: now },
+        $inc: { 'stages.$[stage].attempts': 1 },
+      },
+      {
+        arrayFilters: [{ 'stage.name': stageName }],
+        returnDocument: 'after',
+      },
+    );
+
+    return result;
+  }
+
+  async resetStagesFrom(_id: string, stageNames: TaskStageName[]): Promise<Task | null> {
+    if (stageNames.length === 0) {
+      return this.findById(_id);
+    }
+
+    const now = new Date().toISOString();
+    const collection = await this.getCollection();
+    // 把回溯目标及其下游 stage 全部重置为 pending，并清掉对应 outputs，
+    // 让 LangGraph 在 fail 分支重跑这些节点时不会被 markStageRunning 的旧 status 干扰。
+    const unsetOutputs: Record<string, ''> = {};
+    for (const name of stageNames) {
+      unsetOutputs[`outputs.${name}`] = '';
+    }
+
+    const result = await collection.findOneAndUpdate(
+      { _id },
+      {
+        $set: {
+          updatedAt: now,
+          'stages.$[stage].status': 'pending',
+          'stages.$[stage].startedAt': null,
+          'stages.$[stage].finishedAt': null,
+          'stages.$[stage].error': null,
+        },
+        $unset: unsetOutputs,
+      },
+      {
+        arrayFilters: [{ 'stage.name': { $in: stageNames } }],
+        returnDocument: 'after',
+      },
+    );
+
+    return result;
+  }
 }

@@ -1,7 +1,7 @@
 import { fornaxExecute } from '../../fornax/llm';
 import type { StoryboardShotResult, Task, VideoPromptGeneratingResult } from '../../types';
 import { tryParseAgentJson } from '../../utils/agentOutput';
-import { toAppError } from '../../utils/appError';
+import { AppError, toAppError } from '../../utils/appError';
 import { getStageResult } from '../../utils/getStageResult';
 
 const PROMPT_KEY = 'demo.video_prompt_generate.prompt';
@@ -55,6 +55,8 @@ export async function runVideoPromptGeneratingAgent(task: Task) {
       response.ok && response.text
         ? buildVideoPromptResultFromJson(tryParseAgentJson(response.text))
         : null;
+
+    if (!result || result.length===0) throw new AppError('fornax_video_prompt_result_invalid_schema', 502);
 
     return {
       input: {

@@ -4,6 +4,7 @@ import { createImageGeneratingNode } from '../nodes/imageGeneratingNode';
 import { createImagePromptGeneratingNode } from '../nodes/imagePromptGeneratingNode';
 import { createImageQaReviewingNode } from '../nodes/imageQaReviewingNode';
 import { createScriptGeneratingNode } from '../nodes/scriptGeneratingNode';
+import { createQaConditionalRouter } from './createStageNode';
 import { TaskGraphState } from './taskGraphState';
 
 const TASK_GRAPH_NODE = {
@@ -24,6 +25,18 @@ export function createImageTextTaskGraph(taskRepository: TaskRepository) {
     .addEdge(TASK_GRAPH_NODE.ScriptGenerating, TASK_GRAPH_NODE.ImagePromptGenerating)
     .addEdge(TASK_GRAPH_NODE.ImagePromptGenerating, TASK_GRAPH_NODE.ImageGenerating)
     .addEdge(TASK_GRAPH_NODE.ImageGenerating, TASK_GRAPH_NODE.ImageQaReviewing)
-    .addEdge(TASK_GRAPH_NODE.ImageQaReviewing, END)
+    // 图文质检：pass → 结束；fail → 回溯到 image_generating 重新生图
+    .addConditionalEdges(
+      TASK_GRAPH_NODE.ImageQaReviewing,
+      createQaConditionalRouter({
+        taskRepository,
+        qaStageName: 'image_qa_reviewing',
+        resetStageNames: ['image_generating', 'image_qa_reviewing'],
+      }),
+      {
+        pass: END,
+        fail: TASK_GRAPH_NODE.ImageGenerating,
+      },
+    )
     .compile();
 }

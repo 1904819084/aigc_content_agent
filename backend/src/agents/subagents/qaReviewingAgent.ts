@@ -30,19 +30,26 @@ function buildQaReviewResultFromJson(value: unknown): QaReviewResult | null {
     return null;
   }
   const record = value as Record<string, unknown>;
-  const decision = record.decision as QaReviewDecision;
-  const targetStage = record.targetStage as QaReviewTargetStage;
+  const decision = record.decision;
+  const targetStage = record.targetStage;
   const score = typeof record.score === 'number' && Number.isFinite(record.score) ? record.score : null;
   const reasons = typeof record.reasons === 'string' ? record.reasons.trim() : '';
   const suggestions = typeof record.suggestions === 'string' ? record.suggestions.trim() : '';
 
-  if (!decision || !targetStage || score === null ) {
+  // 白名单守卫：避免 LLM 返回非法字符串导致路由分支崩溃。
+  const isValidDecision = decision === 'pass' || decision === 'fail';
+  const isValidTarget =
+    targetStage === 'image_generating' ||
+    targetStage === 'video_generating' ||
+    targetStage === 'editing';
+
+  if (!isValidDecision || !isValidTarget || score === null) {
     return null;
   }
 
   return {
-    decision,
-    targetStage,
+    decision: decision as QaReviewDecision,
+    targetStage: targetStage as QaReviewTargetStage,
     score,
     reasons,
     suggestions,

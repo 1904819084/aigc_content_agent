@@ -1,14 +1,22 @@
 import {
   TASK_STAGE_LABELS,
+  TASK_STAGE_LABELS_BY_TYPE,
   TASK_STAGE_STATUS_LABELS,
   TASK_STATUS_LABELS,
   TaskStageName,
   TaskStageStatus,
   TaskStatus,
+  TaskType,
 } from '../constants/task';
 import type { Task, TaskStage } from '../types';
 
-export function getTaskStageLabel(stageName: TaskStageName) {
+export function getTaskStageLabel(stageName: TaskStageName, taskType?: TaskType) {
+  if (taskType) {
+    const overridden = TASK_STAGE_LABELS_BY_TYPE[taskType]?.[stageName];
+    if (overridden) {
+      return overridden;
+    }
+  }
   return TASK_STAGE_LABELS[stageName] ?? stageName;
 }
 
@@ -22,7 +30,7 @@ export function getTaskStageStatusLabel(status: TaskStageStatus) {
 
 export function getTaskCurrentStageLabel(task: Task) {
   if (task.currentStage) {
-    return getTaskStageLabel(task.currentStage);
+    return getTaskStageLabel(task.currentStage, task.brief?.taskType);
   }
 
   if (task.status === TaskStatus.Completed) {

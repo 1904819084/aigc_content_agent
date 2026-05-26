@@ -32,19 +32,25 @@ export type StageVisualStyle = {
 const SHORT_VIDEO_STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
   [TaskStageName.ScriptGenerating]: {
     x: STAGE_CANVAS_PADDING_X,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    y: STAGE_CANVAS_PADDING_Y,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
   [TaskStageName.StoryboardGenerating]: {
     x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    y: STAGE_CANVAS_PADDING_Y,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
   [TaskStageName.ImagePromptGenerating]: {
     x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
     y: STAGE_CANVAS_PADDING_Y,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  },
+  [TaskStageName.VideoPromptGenerating]: {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
@@ -57,12 +63,6 @@ const SHORT_VIDEO_STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
   [TaskStageName.ImageQaReviewing]: {
     x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 4,
     y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.VideoPromptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP * 2,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
@@ -80,13 +80,13 @@ const SHORT_VIDEO_STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
   },
   [TaskStageName.Editing]: {
     x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 7,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    y: STAGE_CANVAS_PADDING_Y,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
   [TaskStageName.EditingQaReviewing]: {
     x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 8,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
+    y: STAGE_CANVAS_PADDING_Y,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
   },
@@ -121,10 +121,12 @@ const IMAGE_TEXT_STAGE_LAYOUT_MAP: Partial<Record<TaskStageName, StageLayout>> =
 
 const SHORT_VIDEO_STAGE_DEPENDENCIES: Array<[TaskStageName, TaskStageName]> = [
   [TaskStageName.ScriptGenerating, TaskStageName.StoryboardGenerating],
+  // Storyboard 之后双链路并发：分镜图链路 + 分镜视频提示词。
   [TaskStageName.StoryboardGenerating, TaskStageName.ImagePromptGenerating],
   [TaskStageName.StoryboardGenerating, TaskStageName.VideoPromptGenerating],
   [TaskStageName.ImagePromptGenerating, TaskStageName.ImageGenerating],
   [TaskStageName.ImageGenerating, TaskStageName.ImageQaReviewing],
+  // VideoGenerating 等待 image_qa pass + video_prompt 都完成（后端通过 Sink 节点保证 AND-join）。
   [TaskStageName.ImageQaReviewing, TaskStageName.VideoGenerating],
   [TaskStageName.VideoPromptGenerating, TaskStageName.VideoGenerating],
   [TaskStageName.VideoGenerating, TaskStageName.VideoQaReviewing],
