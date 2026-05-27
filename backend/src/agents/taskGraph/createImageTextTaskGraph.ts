@@ -1,4 +1,5 @@
 import { END, START, StateGraph } from '@langchain/langgraph';
+import type { MongoDBSaver } from '@langchain/langgraph-checkpoint-mongodb';
 import type { TaskRepository } from '../../types';
 import { createImageGeneratingNode } from '../nodes/imageGeneratingNode';
 import { createImagePromptGeneratingNode } from '../nodes/imagePromptGeneratingNode';
@@ -15,7 +16,10 @@ const TASK_GRAPH_NODE = {
 };
 
 // 图文Graph：复用短视频 graph 中已有的 4 个节点，节点内部按 task.brief.taskType 自适应输入。
-export function createImageTextTaskGraph(taskRepository: TaskRepository) {
+export function createImageTextTaskGraph(
+  taskRepository: TaskRepository,
+  checkpointer: MongoDBSaver,
+) {
   return new StateGraph(TaskGraphState)
     .addNode(TASK_GRAPH_NODE.ScriptGenerating, createScriptGeneratingNode(taskRepository))
     .addNode(TASK_GRAPH_NODE.ImagePromptGenerating, createImagePromptGeneratingNode(taskRepository))
@@ -38,5 +42,5 @@ export function createImageTextTaskGraph(taskRepository: TaskRepository) {
         fail: TASK_GRAPH_NODE.ImageGenerating,
       },
     )
-    .compile();
+    .compile({ checkpointer });
 }

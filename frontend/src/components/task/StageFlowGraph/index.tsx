@@ -59,11 +59,6 @@ function buildStageFlowNodes(task: Task): Node[] {
         >
           <div className={styles.stageNodeHeader}>
             <span className={styles.stageIndex}>0{index + 1}</span>
-            {stage.attempts > 0 ? (
-              <span className={styles.stageRetryBadge} title="QA 失败回溯重试次数">
-                重试 {stage.attempts}
-              </span>
-            ) : null}
             <StatusTag
               status={stage.status}
               color={TASK_STAGE_TAG_COLOR_MAP[stage.status]}
@@ -76,6 +71,11 @@ function buildStageFlowNodes(task: Task): Node[] {
             <Text strong className={styles.stageNodeTitle}>
               {getTaskStageLabel(stage.name, taskType)}
             </Text>
+            {stage.attempts > 0 ? (
+              <span className={styles.stageRetryBadge} title="QA 失败回溯重试次数">
+                重试 {stage.attempts}
+              </span>
+            ) : null}
           </div>
         </div>
       ),

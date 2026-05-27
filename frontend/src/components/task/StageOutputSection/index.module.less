@@ -72,18 +72,19 @@
 }
 
 .jsonPanel {
-  margin-bottom: 0 !important;
+  overflow: auto;
+  max-height: 480px;
+  padding: 16px 18px;
+  border: 1px solid rgba(8, 145, 178, 0.12);
+  border-radius: 18px;
+  background: #f8fcfd;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
 
-  pre {
-    overflow: auto;
-    margin: 0;
-    padding: 18px;
-    border: 1px solid rgba(8, 145, 178, 0.12);
-    border-radius: 18px;
-    background: #f8fcfd;
+  // 让 react-json-view 背景透明融入面板
+  :global(.w-rjv) {
+    background: transparent !important;
     color: #164e63;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.7;
   }
 }

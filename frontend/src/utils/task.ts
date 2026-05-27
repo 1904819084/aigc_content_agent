@@ -44,10 +44,6 @@ export function getTaskCurrentStageLabel(task: Task) {
   return '待处理';
 }
 
-export function stringifyTaskOutput(value: unknown) {
-  return JSON.stringify(value, null, 2) ?? 'null';
-}
-
 export function formatTaskTimestamp(value: string | null | undefined) {
   if (!value) {
     return '--';

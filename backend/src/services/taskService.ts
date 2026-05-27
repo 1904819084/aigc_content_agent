@@ -1,18 +1,9 @@
 import { createTaskEntity, resetTaskForRun } from '../domain/task/taskFactory';
 import { Injectable } from '@gulux/gulux';
-import { createImageTextTaskGraph } from '../agents/taskGraph/createImageTextTaskGraph';
-import { createShortVideoTaskGraph } from '../agents/taskGraph/createShortVideoTaskGraph';
-import { TaskRunner } from '../agents/taskRunner';
-import { MongoTaskRepository } from '../data/mongoTaskRepository';
 import type { TaskBrief, TaskListQuery } from '../types';
 import { AppError } from '../utils/appError';
 import { isTaskWithinDateRange } from '../utils/taskQuery';
-
-const taskRepository = new MongoTaskRepository();
-const shortVideoTaskGraph = createShortVideoTaskGraph(taskRepository);
-const imageTextTaskGraph = createImageTextTaskGraph(taskRepository);
-const shortVideoTaskRunner = new TaskRunner(taskRepository, shortVideoTaskGraph);
-const imageTextTaskRunner = new TaskRunner(taskRepository, imageTextTaskGraph);
+import { pickRunner, taskRepository } from './taskRuntime';
 
 @Injectable()
 export default class TaskService {
@@ -46,15 +37,22 @@ export default class TaskService {
     return taskRepository.save(createTaskEntity(brief));
   }
 
+  /**
+   * 触发任务执行：
+   * - pending / failed：fresh start，重置 stages/outputs；
+   * - running：续跑场景（多见于进程崩溃后用户手动点"运行"），保留 stages 与 checkpoint，
+   *   由 TaskRunner 内部 getState 检测到 checkpoint 后自动从最近 superstep 恢复；
+   * - 其他状态（如 completed）拒绝重复触发。
+   */
   public async runTask(_id: string) {
     const task = await this.getTaskById(_id);
-    if (task.status !== 'pending' && task.status !== 'failed') {
+    if (task.status !== 'pending' && task.status !== 'failed' && task.status !== 'running') {
       throw new AppError('task_already_started', 400);
     }
-    const resetTask = await taskRepository.save(resetTaskForRun(task));
-    const runner =
-      resetTask.brief.taskType === 'image_text' ? imageTextTaskRunner : shortVideoTaskRunner;
-    runner.start(resetTask._id);
-    return resetTask;
+    const persistedTask =
+      task.status === 'running' ? task : await taskRepository.save(resetTaskForRun(task));
+    const runner = await pickRunner(persistedTask);
+    runner.start(persistedTask._id);
+    return persistedTask;
   }
 }

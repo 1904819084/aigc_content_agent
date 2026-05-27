@@ -1,10 +1,8 @@
-import { Card, Empty, Space, Typography } from 'antd';
+import { Card, Empty, Space } from 'antd';
+import JsonView from '@uiw/react-json-view';
 import { ImageList } from '../../common/ImageList';
 import type { AssetResource, TaskStageOutput } from '../../../types';
-import { stringifyTaskOutput } from '../../../utils/task';
 import styles from './index.module.less';
-
-const { Paragraph } = Typography;
 
 interface StageOutputSectionProps {
   output: TaskStageOutput | null;
@@ -59,16 +57,30 @@ export function StageOutputSection(props: StageOutputSectionProps) {
         {Object.keys(output.input).length === 0 ? (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="该阶段没有输入快照" />
         ) : (
-          <Paragraph className={styles.jsonPanel}>
-            <pre>{stringifyTaskOutput(output.input)}</pre>
-          </Paragraph>
+          <div className={styles.jsonPanel}>
+            <JsonView
+              value={output.input as object}
+              collapsed={1}
+              displayDataTypes={false}
+              displayObjectSize
+              enableClipboard
+            />
+          </div>
         )}
       </Card>
 
       <Card variant="borderless" className={styles.card} title="阶段输出">
-        <Paragraph className={styles.jsonPanel}>
-          <pre>{stringifyTaskOutput(output.output)}</pre>
-        </Paragraph>
+        <div className={styles.jsonPanel}>
+          <JsonView
+            value={(typeof output.output === 'object' && output.output !== null
+              ? output.output
+              : { value: output.output }) as object}
+            collapsed={1}
+            displayDataTypes={false}
+            displayObjectSize
+            enableClipboard
+          />
+        </div>
       </Card>
 
       {previewImages.length > 0 ? (

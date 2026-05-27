@@ -1,4 +1,5 @@
 import { END, START, StateGraph } from '@langchain/langgraph';
+import type { MongoDBSaver } from '@langchain/langgraph-checkpoint-mongodb';
 import type { TaskRepository } from '../../types';
 import { createEditingNode } from '../nodes/editingNode';
 import { createEditingQaReviewingNode } from '../nodes/editingQaReviewingNode';
@@ -35,7 +36,10 @@ async function noopSinkNode() {
 }
 
 // 短视频Graph
-export function createShortVideoTaskGraph(taskRepository: TaskRepository) {
+export function createShortVideoTaskGraph(
+  taskRepository: TaskRepository,
+  checkpointer: MongoDBSaver,
+) {
   return new StateGraph(TaskGraphState)
     .addNode(TASK_GRAPH_NODE.ScriptGenerating, createScriptGeneratingNode(taskRepository))
     .addNode(TASK_GRAPH_NODE.StoryboardGenerating, createStoryboardGeneratingNode(taskRepository))
@@ -103,5 +107,5 @@ export function createShortVideoTaskGraph(taskRepository: TaskRepository) {
         fail: TASK_GRAPH_NODE.Editing,
       },
     )
-    .compile();
+    .compile({ checkpointer });
 }

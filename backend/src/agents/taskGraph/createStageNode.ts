@@ -104,7 +104,9 @@ export const MAX_QA_ATTEMPTS = 3;
  * QA 节点的条件路由工厂：根据 QA 阶段产出的 decision 决定下一步走 pass 还是 fail 分支。
  *
  * - decision === 'pass'：走下游 nextNode
- * - decision === 'fail' 且 attempts < MAX_QA_ATTEMPTS：累加 attempts，重置回溯目标及其下游 stage，走 fallbackNode 重做
+ * - decision === 'fail' 且 attempts < MAX_QA_ATTEMPTS：把 attempts 累加到「回溯目标 stage」
+ *   （即 resetStageNames[0]，真正被重做的那个，比如 image_generating），重置目标及其下游 stage
+ *   状态，走 fallbackNode 重做
  * - decision === 'fail' 且 attempts >= MAX_QA_ATTEMPTS：熔断 —— 把 QA 阶段标失败并抛错，
  *   由 taskRunner 的 catch 把任务整体落到 status=failed，绝不静默走 END 让任务伪装成 completed。
  * - 输出缺失/解析异常：同样视为不可恢复错误，直接抛错让任务标 failed。
@@ -114,10 +116,16 @@ export const MAX_QA_ATTEMPTS = 3;
 export function createQaConditionalRouter(params: {
   taskRepository: TaskRepository;
   qaStageName: TaskStageName;
-  // QA 失败时需要重置并重跑的下游 stage 名（含被回溯的目标 stage 自身），按拓扑顺序排列。
+  // QA 失败时需要重置并重跑的下游 stage 名，按拓扑顺序排列。
+  // 第 0 项即「回溯目标」（真正被重做的 stage），attempts 计在这里。
   resetStageNames: TaskStageName[];
 }) {
   const { taskRepository, qaStageName, resetStageNames } = params;
+  // 业务约束：必须显式声明回溯目标，否则路由不知道把 attempts 计到哪。
+  const retryTargetStageName = resetStageNames[0];
+  if (!retryTargetStageName) {
+    throw new Error('qa_router_requires_reset_target');
+  }
 
   return async (state: TaskGraphState): Promise<'pass' | 'fail'> => {
     const task = await taskRepository.findById(state._id);
@@ -128,8 +136,9 @@ export function createQaConditionalRouter(params: {
 
     const qaOutput = task.outputs?.[qaStageName];
     const result = qaOutput?.output as QaReviewResult | undefined;
-    const qaStage = task.stages.find((stage) => stage.name === qaStageName);
-    const attempts = qaStage?.attempts ?? 0;
+    // attempts 挂在「回溯目标 stage」上，语义即「该 stage 已被 QA 触发重做的次数」。
+    const retryTargetStage = task.stages.find((stage) => stage.name === retryTargetStageName);
+    const attempts = retryTargetStage?.attempts ?? 0;
 
     // 输出缺失/异常：标 QA 阶段失败并抛错，让 taskRunner 把任务标 failed，避免静默吞掉。
     if (!result) {
@@ -147,7 +156,8 @@ export function createQaConditionalRouter(params: {
       throw new Error('qa_attempts_exhausted');
     }
 
-    await taskRepository.incrementStageAttempts(state._id, qaStageName);
+    // 注意顺序：先累加 attempts，再 reset。reset 只重置 status/output，不会清掉 attempts。
+    await taskRepository.incrementStageAttempts(state._id, retryTargetStageName);
     await taskRepository.resetStagesFrom(state._id, resetStageNames);
     return 'fail';
   };
