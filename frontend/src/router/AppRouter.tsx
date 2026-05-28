@@ -1,18 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { Spin } from 'antd';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { TaskStageStatus } from '../constants/task';
 import { StatusIcon } from '../components/common/StatusIcon';
+import { TaskStageStatus } from '../constants/task';
 
-const TaskListPage = lazy(async () => {
-  const module = await import('../pages/task-list/TaskListPage');
-  return { default: module.TaskListPage };
-});
-
-const TaskDetailPage = lazy(async () => {
-  const module = await import('../pages/task-detail/TaskDetailPage');
-  return { default: module.TaskDetailPage };
-});
+const TaskListPage = lazy(() => import('../pages/TaskList'));
+const TaskDetailPage = lazy(() => import('../pages/TaskDetail'));
 
 export function AppRouter() {
   return (

@@ -182,3 +182,5 @@ export function TaskListPage() {
     </AppShell>
   );
 }
+
+export default TaskListPage;

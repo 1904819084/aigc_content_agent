@@ -144,3 +144,5 @@ export function TaskDetailPage() {
     </AppShell>
   );
 }
+
+export default TaskDetailPage;
