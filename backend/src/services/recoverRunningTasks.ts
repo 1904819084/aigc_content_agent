@@ -1,9 +1,9 @@
 import type { Task, TaskRepository } from '../types';
-import type { TaskRunner } from '../agents/taskRunner';
+import type { SupervisorAgent } from '../agents/Supervisor/supervisorAgent';
 
 interface RecoverRunningTasksOptions {
   taskRepository: TaskRepository;
-  pickRunner: (task: Task) => Promise<TaskRunner>;
+  pickSupervisor: (task: Task) => Promise<SupervisorAgent>;
 }
 
 /**
@@ -12,7 +12,7 @@ interface RecoverRunningTasksOptions {
  */
 export async function recoverRunningTasks({
   taskRepository,
-  pickRunner,
+  pickSupervisor,
 }: RecoverRunningTasksOptions) {
   try {
     const tasks = await taskRepository.list();
@@ -21,8 +21,8 @@ export async function recoverRunningTasks({
       return;
     }
     for (const task of running) {
-      const runner = await pickRunner(task);
-      runner.start(task._id);
+      const supervisor = await pickSupervisor(task);
+      supervisor.start(task._id);
     }
     console.info(`[taskRecovery] resumed ${running.length} running task(s)`);
   } catch (error) {
