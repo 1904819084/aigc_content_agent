@@ -1,74 +1,69 @@
-import type { Task, VideoGeneratingResult } from '../../types';
+import type { Task } from '../../types';
 import { getStageResult } from '../../utils/getStageResult';
 import { sanitizeHttpUrl } from '../../utils/url';
-import { buildJsonResultParser, createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
+import { createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
+import { tryParseAgentJson } from '../../utils/agentOutput';
 
 const PROMPT_KEY = 'demo.video_generate_agent.prompt';
 
-function isVideoGeneratingResult(value: unknown): value is VideoGeneratingResult {
-  if (!value || typeof value !== 'object') {
-    return false;
+/**
+ * fornax 返回的视频列表字段不稳定（video / videoURL / previewUrl / url 任选其一），
+ * 这里在进入 zod 校验之前先做字段归一化 + sanitizeHttpUrl，让 schema 只关心最终 shape。
+ */
+function pickVideoUrl(item: Record<string, unknown>): string {
+  const candidates = ['video', 'videoURL', 'previewUrl', 'url'] as const;
+  for (const key of candidates) {
+    const value = item[key];
+    if (typeof value === 'string') {
+      return sanitizeHttpUrl(value);
+    }
   }
-  const record = value as Record<string, unknown>;
-  return (
-    typeof record.shotId === 'string' &&
-    (
-      typeof record.video === 'string' ||
-      typeof record.videoURL === 'string' ||
-      typeof record.previewUrl === 'string' ||
-      typeof record.url === 'string'
-    )
-  );
+  return '';
 }
 
-function buildVideoGeneratingResultFromJson(value: unknown): VideoGeneratingResult[] | null {
+function normalizeVideoList(value: unknown): unknown {
   const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
-  const nestedVideos =
-    Array.isArray(record?.videos)
+  const sourceList = Array.isArray(value)
+    ? value
+    : Array.isArray(record?.videos)
       ? record.videos
       : Array.isArray(record?.results)
         ? record.results
         : null;
-  const videoValues = Array.isArray(value)
-    ? value.filter(isVideoGeneratingResult)
-    : nestedVideos
-      ? nestedVideos.filter(isVideoGeneratingResult)
-      : [];
 
-  if (videoValues.length === 0) {
+  if (!Array.isArray(sourceList)) {
     return null;
   }
 
-  return videoValues.map((item, index) => {
-    const itemRecord = item as unknown as Record<string, unknown>;
-    const rawVideo =
-      typeof itemRecord.video === 'string'
-        ? itemRecord.video
-        : typeof itemRecord.videoURL === 'string'
-          ? itemRecord.videoURL
-          : typeof itemRecord.previewUrl === 'string'
-            ? itemRecord.previewUrl
-            : typeof itemRecord.url === 'string'
-              ? itemRecord.url
-              : '';
-    const rawDuration = typeof itemRecord.duration === 'number' ? itemRecord.duration : 5;
-
-    return {
-      shotId: item.shotId.trim() || `shot_${index + 1}`,
-      video: sanitizeHttpUrl(rawVideo),
-      duration: Number.isFinite(rawDuration) && rawDuration > 0 ? Math.round(rawDuration) : 5,
-    };
+  return sourceList.flatMap((raw) => {
+    if (!raw || typeof raw !== 'object') {
+      return [];
+    }
+    const item = raw as Record<string, unknown>;
+    return [
+      {
+        shotId: typeof item.shotId === 'string' ? item.shotId : '',
+        video: pickVideoUrl(item),
+        duration: typeof item.duration === 'number' ? item.duration : 5,
+      },
+    ];
   });
 }
 
 // 短视频分镜视频生成agent
-export const runVideoGeneratingAgent = createLLMStageAgent<'video_generating'>({
+export const runVideoGeneratingAgent = createLLMStageAgent({
+  stageName: 'video_generating',
   promptKey: PROMPT_KEY,
   getInput: (task: Task) => ({
     VideoPromptList: getStageResult(task, 'video_prompt_generating'),
     ImageList: getStageResult(task, 'image_generating'),
   }),
-  parseResult: buildJsonResultParser<'video_generating', void>(buildVideoGeneratingResultFromJson),
+  extractValue: (response) => {
+    if (!response.ok || !response.text) {
+      return null;
+    }
+    return normalizeVideoList(tryParseAgentJson(response.text));
+  },
   invalidSchemaError: 'fornax_video_generating_result_invalid_schema',
   executeError: 'fornax_video_generating_failed',
 });

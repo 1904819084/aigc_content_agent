@@ -1,16 +1,18 @@
-import type {
-  QaReviewDecision,
-  QaReviewResult,
-  QaReviewTargetStage,
-  Task,
-} from '../../types';
+import type { QaReviewTargetStage, Task } from '../../types';
 import { getStageResult } from '../../utils/getStageResult';
-import { buildJsonResultParser, createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
+import { createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
 
 const PROMPT_KEY = 'demo.qa_review_agent.prompt';
 
-// 三种 QA stage 的输出类型在 StageOutputMap 中均为 QaReviewResult，故工厂可用联合类型 S。
+// 三种 QA stage 共用相同的 zod schema（QaReviewResult），但工厂仍然要求一个具体 stageName。
+// QA 由 graph 中三个独立 node 触发，stageName 在 createQaReviewingAgent 工厂入口指定。
 type QaStageName = 'image_qa_reviewing' | 'video_qa_reviewing' | 'editing_qa_reviewing';
+
+const QA_STAGE_BY_TARGET: Record<QaReviewTargetStage, QaStageName> = {
+  image_generating: 'image_qa_reviewing',
+  video_generating: 'video_qa_reviewing',
+  editing: 'editing_qa_reviewing',
+};
 
 // 按目标阶段读取本次需要质检的产物，一次只针对一种内容进行质检。
 function getReviewContent(task: Task, target: QaReviewTargetStage) {
@@ -23,66 +25,36 @@ function getReviewContent(task: Task, target: QaReviewTargetStage) {
   return getStageResult(task, 'editing');
 }
 
-function buildQaReviewResultFromJson(value: unknown): QaReviewResult | null {
-  if (!value || typeof value !== 'object') {
-    return null;
-  }
-  const record = value as Record<string, unknown>;
-  const decision = record.decision;
-  const targetStage = record.targetStage;
-  const score = typeof record.score === 'number' && Number.isFinite(record.score) ? record.score : null;
-  const reasons = typeof record.reasons === 'string' ? record.reasons.trim() : '';
-  const suggestions = typeof record.suggestions === 'string' ? record.suggestions.trim() : '';
-
-  // 白名单守卫：避免 LLM 返回非法字符串导致路由分支崩溃。
-  const isValidDecision = decision === 'pass' || decision === 'fail';
-  const isValidTarget =
-    targetStage === 'image_generating' ||
-    targetStage === 'video_generating' ||
-    targetStage === 'editing';
-
-  if (!isValidDecision || !isValidTarget || score === null) {
-    return null;
-  }
-
-  return {
-    decision: decision as QaReviewDecision,
-    targetStage: targetStage as QaReviewTargetStage,
-    score,
-    reasons,
-    suggestions,
-  };
+function buildQaReviewingAgent(target: QaReviewTargetStage) {
+  return createLLMStageAgent({
+    stageName: QA_STAGE_BY_TARGET[target],
+    promptKey: PROMPT_KEY,
+    getInput: (task: Task) => {
+      const content = getReviewContent(task, target);
+      if (task.brief.taskType === 'short_video' && target === 'image_generating') {
+        return { ShortVideo_ImageList: content };
+      }
+      if (task.brief.taskType === 'image_text' && target === 'image_generating') {
+        return { ImageText_ImageList: content };
+      }
+      if (target === 'video_generating') {
+        return { videoList: content };
+      }
+      return { video: content };
+    },
+    // QA 的 fornax variables 与 input 字段同名，无需 stringify。
+    getVariables: (input) => input,
+    invalidSchemaError: 'fornax_qa_review_result_invalid_schema',
+    executeError: 'fornax_qa_review_failed',
+  });
 }
 
-// 内部工厂实例：通过 ctx 接收 QA 目标阶段，把目标阶段相关的「取产物 → 选 prompt 变量名」收敛进 getInput。
-const runQaReviewingAgentInternal = createLLMStageAgent<QaStageName, QaReviewTargetStage>({
-  promptKey: PROMPT_KEY,
-  getInput: (task, target) => {
-    const content = getReviewContent(task, target);
-    if (task.brief.taskType === 'short_video' && target === 'image_generating') {
-      return { ShortVideo_ImageList: content };
-    }
-    if (task.brief.taskType === 'image_text' && target === 'image_generating') {
-      return { ImageText_ImageList: content };
-    }
-    if (target === 'video_generating') {
-      return { videoList: content };
-    }
-    return { video: content };
-  },
-  // QA 的 fornax variables 与 input 字段同名，无需 stringify。
-  getVariables: (input) => input,
-  parseResult: buildJsonResultParser<QaStageName, QaReviewTargetStage>(buildQaReviewResultFromJson),
-  invalidSchemaError: 'fornax_qa_review_result_invalid_schema',
-  executeError: 'fornax_qa_review_failed',
-});
-
-// 内容质检 agent：可对短视频分镜图、短视频分镜视频、短视频最终成片，图文配图 四选一进行质检，
-// 一次调用只接收一种产物，由调用方传入 target 决定本次质检对象。
+// 内容质检 agent：一次调用只接收一种产物，由调用方传入 target 决定本次质检对象。
 export const runQaReviewingAgent = (task: Task, target: QaReviewTargetStage) =>
-  runQaReviewingAgentInternal(task, target);
+  buildQaReviewingAgent(target)(task);
 
-// 工厂模式：方便上游 node 在不同质检点固定一个目标阶段。
+// 工厂模式：方便 graph 在不同质检点固定一个目标阶段，避免每次调用都重建工厂实例。
 export function createQaReviewingAgent(target: QaReviewTargetStage) {
-  return (task: Task) => runQaReviewingAgentInternal(task, target);
+  const agent = buildQaReviewingAgent(target);
+  return (task: Task) => agent(task);
 }

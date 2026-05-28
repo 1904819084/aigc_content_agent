@@ -1,4 +1,4 @@
-import type { ImageGeneratingResult, Task } from '../../types';
+import type { Task } from '../../types';
 import { getStageResult } from '../../utils/getStageResult';
 import { sanitizeHttpUrl } from '../../utils/url';
 import { createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
@@ -12,7 +12,11 @@ type FornaxMessagePart = {
   };
 };
 
-function buildImageGeneratingResultFromParts(task: Task, raw: unknown): ImageGeneratingResult[] | null {
+/**
+ * 把 fornax 图片接口的 response.raw 抽成「待 zod 校验」的 ImageGeneratingResult[] 形状，
+ * 校验仍由工厂统一交给 imageGeneratingResultSchema 完成。
+ */
+function extractImageList(task: Task, raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') {
     return null;
   }
@@ -25,13 +29,12 @@ function buildImageGeneratingResultFromParts(task: Task, raw: unknown): ImageGen
     }>;
   };
   const parts = record.choices?.[0]?.message?.parts;
-
   if (!Array.isArray(parts)) {
     return null;
   }
 
   let imageIndex = 0;
-  const results = parts.flatMap((part) => {
+  const items = parts.flatMap((part) => {
     if (!part || typeof part !== 'object') {
       return [];
     }
@@ -50,11 +53,12 @@ function buildImageGeneratingResultFromParts(task: Task, raw: unknown): ImageGen
     }];
   });
 
-  return results.length > 0 ? results : null;
+  return items.length > 0 ? items : null;
 }
 
 // 短视频分镜图/图文生成agent
-export const runImageGeneratingAgent = createLLMStageAgent<'image_generating'>({
+export const runImageGeneratingAgent = createLLMStageAgent({
+  stageName: 'image_generating',
   promptKey: PROMPT_KEY,
   getInput: (task: Task) => {
     const imagePromptList = getStageResult(task, 'image_prompt_generating');
@@ -62,12 +66,12 @@ export const runImageGeneratingAgent = createLLMStageAgent<'image_generating'>({
       ? { ImageText_ImagePromptList: imagePromptList }
       : { ShortVideo_ImagePromptList: imagePromptList };
   },
-  // 图片生成阶段需要从 fornax response.raw 解析，而不是 response.text。
-  parseResult: (response, task) => {
+  // 图片生成阶段从 fornax response.raw 取图片 parts，而不是 response.text。
+  extractValue: (response, task) => {
     if (!response.ok) {
       return null;
     }
-    return buildImageGeneratingResultFromParts(task, response.raw);
+    return extractImageList(task, response.raw);
   },
   invalidSchemaError: 'fornax_image_generating_result_invalid_schema',
   executeError: 'fornax_image_generating_failed',
