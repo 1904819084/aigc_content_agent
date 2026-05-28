@@ -53,9 +53,12 @@ agent/
       ├─ components/
       │  ├─ common/               AppShell / PageHero / StatusTag …
       │  └─ task/                 CreateTaskModal / StageFlowGraph / StageOutputSection / FinalPreview …
-      ├─ store/                   Zustand 状态机
-      ├─ hooks/useTaskWorkbench   组合 store + services + polling
-      ├─ services/                REST 客户端
+      ├─ hooks/
+      │  ├─ useTaskList.ts          列表查询：filters useState + ahooks refreshDeps 自动重拉
+      │  ├─ useTaskDetail.ts        详情轮询：ahooks pollingInterval + 终态 cancel
+      │  └─ useCreateTask.ts        创建 + 跑任务 mutation（zustand useShallow）
+      ├─ store/                   Zustand 状态机（CreateTaskModal 草稿 / 开关）
+      ├─ services/                REST 客户端（axios + 统一错误）
       └─ constants/ utils/        派生自 shared 的展示常量
 ```
 
@@ -203,8 +206,10 @@ SubAgentFactory/createLLMStageAgent  ← LLM Agent 通用工厂
 ### Frontend
 
 - `Router/router.tsx`：`lazy(() => import('../pages/TaskList'))` + Suspense
-- `store/taskWorkbenchStore.ts`：Zustand 工作台状态机
-- `hooks/useTaskWorkbench.ts`：组合 store + REST + polling，业务页面只消费此 hook
+- `hooks/useTaskList.ts`：filters 进 `useState`，`useRequest({ refreshDeps: [filters] })` 自动初始执行 + 变更重拉，避免 ref 隐藏 state
+- `hooks/useTaskDetail.ts`：`useRequest({ pollingInterval: 1500, pollingWhenHidden: false })`，进入终态后 `cancel()` 停轮询，自带 cleanup / 切 id 重置
+- `hooks/useCreateTask.ts`：zustand selector 用 `useShallow` 包裹避免无限循环；mutation 完成后调用 `refreshTasks` 触发列表 `refresh`
+- `store/taskWorkbenchStore.ts`：Zustand —— 当前仅持有 `draftTask + createModalOpen`（建任务弹窗 UI 状态）
 - `components/task/StageFlowGraph`：基于 `@xyflow/react` 的阶段流向图
 - `components/task/StageOutputSection`：阶段产物展示（当前依赖 JsonView，后续将引入 Renderer Registry）
 

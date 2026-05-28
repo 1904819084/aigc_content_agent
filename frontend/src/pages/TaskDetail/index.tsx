@@ -1,6 +1,5 @@
 import { ArrowLeftOutlined, CalendarOutlined, RocketOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Descriptions, Empty, Row, Space, Tag, Typography } from 'antd';
-import { useEffect } from 'react';
+import { Alert, Button, Card, Col, Descriptions, Empty, Row, Space, Tag, Typography } from 'antd';
 import { Link, useParams } from 'react-router-dom';
 import { AppShell } from '../../components/common/AppShell';
 import { ImageList } from '../../components/common/ImageList';
@@ -8,23 +7,14 @@ import { PageHero } from '../../components/common/PageHero';
 import { StatusTag } from '../../components/common/StatusTag';
 import { TaskStagePanel } from '../../components/task/TaskStagePanel';
 import { TASK_STATUS_TAG_COLOR_MAP, TASK_TYPE_LABELS, TaskType } from '../../constants/task';
-import { useTaskWorkbench } from '../../hooks/useTaskWorkbench';
+import { useTaskDetail } from '../../hooks/useTaskDetail';
 import { getTaskCurrentStageLabel, getTaskStatusLabel } from '../../utils/task';
 
 const { Paragraph, Text } = Typography;
 
 export function TaskDetailPage() {
   const { _id } = useParams();
-  const { tasks, activeTask, setActiveTaskKey } = useTaskWorkbench();
-
-  const currentTask =
-    activeTask?._id === _id ? activeTask : (tasks.find((task) => task._id === _id) ?? null);
-
-  useEffect(() => {
-    if (_id) {
-      setActiveTaskKey(_id);
-    }
-  }, [_id, setActiveTaskKey]);
+  const { data: currentTask, error } = useTaskDetail(_id);
 
   return (
     <AppShell
@@ -69,7 +59,8 @@ export function TaskDetailPage() {
     >
       {!currentTask ? (
         <Card variant="borderless" className="taskSectionCard">
-          <Empty description="任务不存在或仍在加载中" />
+          {error ? <Alert type="error" showIcon message="任务加载失败" description={error} /> : null}
+          {!error ? <Empty description="任务不存在或仍在加载中" /> : null}
         </Card>
       ) : (
         <Space direction="vertical" size={16} style={{ width: '100%' }}>

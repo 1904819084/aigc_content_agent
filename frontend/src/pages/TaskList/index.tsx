@@ -1,13 +1,15 @@
 import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Card, Col, DatePicker, Form, Input, Row, Space, Typography } from 'antd';
+import { Alert, Button, Card, Col, DatePicker, Form, Input, Row, Space, Typography } from 'antd';
 import type { Dayjs } from 'dayjs';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '../../components/common/AppShell';
 import { PageHero } from '../../components/common/PageHero';
 import { CreateTaskModal } from '../../components/task/CreateTaskModal';
 import { TaskListTable } from '../../components/task/TaskListTable';
 import { TaskSummaryCards } from '../../components/task/TaskSummaryCards';
 import { TaskStatus } from '../../constants/task';
-import { useTaskWorkbench } from '../../hooks/useTaskWorkbench';
+import { useCreateTask } from '../../hooks/useCreateTask';
+import { useTaskList } from '../../hooks/useTaskList';
 import type { TaskListQuery } from '../../types';
 import { isTaskRunningStatus } from '../../utils/task';
 
@@ -21,17 +23,20 @@ interface TaskListFilterValues {
 }
 
 export function TaskListPage() {
+  const navigate = useNavigate();
+  const { tasks, loading: listLoading, error: listError, setFilters, refresh } = useTaskList();
   const {
     draftTask,
     setDraftTask,
-    tasks,
     createModalOpen,
     setCreateModalOpen,
     submitting,
-    error,
+    error: createError,
     createAndRunTask,
-    loadTasks,
-  } = useTaskWorkbench();
+  } = useCreateTask({
+    refreshTasks: refresh,
+    onCreated: (_id) => navigate(`/tasks/${_id}`),
+  });
   const [filterForm] = Form.useForm<TaskListFilterValues>();
 
   const runningCount = tasks.filter((task) => isTaskRunningStatus(task.status)).length;
@@ -48,13 +53,13 @@ export function TaskListPage() {
     };
   }
 
-  async function handleFilterSubmit(values: TaskListFilterValues) {
-    await loadTasks(buildTaskQuery(values));
+  function handleFilterSubmit(values: TaskListFilterValues) {
+    setFilters(buildTaskQuery(values));
   }
 
-  async function handleFilterReset() {
+  function handleFilterReset() {
     filterForm.resetFields();
-    await loadTasks({});
+    setFilters({});
   }
 
   return (
@@ -115,10 +120,19 @@ export function TaskListPage() {
                   当前返回 {tasks.length} 个任务
                 </Paragraph>
               }
-            >
-              <Form<TaskListFilterValues>
-                form={filterForm}
-                layout="vertical"
+              >
+                {listError ? (
+                  <Alert
+                    type="error"
+                    showIcon
+                    message="任务列表加载失败"
+                    description={listError}
+                    style={{ marginBottom: 16 }}
+                  />
+                ) : null}
+                <Form<TaskListFilterValues>
+                  form={filterForm}
+                  layout="vertical"
                 onFinish={handleFilterSubmit}
                 className="taskFilterForm"
               >
@@ -157,7 +171,7 @@ export function TaskListPage() {
                         <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
                           查询
                         </Button>
-                        <Button icon={<ReloadOutlined />} onClick={() => void handleFilterReset()}>
+                        <Button icon={<ReloadOutlined />} onClick={handleFilterReset}>
                           重置
                         </Button>
                       </Space>
@@ -165,7 +179,7 @@ export function TaskListPage() {
                   </Col>
                 </Row>
               </Form>
-              <TaskListTable tasks={tasks} loading={submitting && tasks.length === 0} />
+              <TaskListTable tasks={tasks} loading={listLoading} />
             </Card>
           </Col>
         </Row>
@@ -174,7 +188,7 @@ export function TaskListPage() {
         open={createModalOpen}
         draftTask={draftTask}
         submitting={submitting}
-        error={error}
+        error={createError}
         onCancel={() => setCreateModalOpen(false)}
         onChange={setDraftTask}
         onSubmit={createAndRunTask}

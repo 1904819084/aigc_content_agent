@@ -17,7 +17,7 @@ interface CreateTaskModalProps {
   error: string | null;
   onCancel: () => void;
   onChange: (draftTask: TaskBrief) => void;
-  onSubmit: (files: File[]) => void;
+  onSubmit: (files: File[]) => Promise<void> | void;
 }
 
 export function CreateTaskModal(props: CreateTaskModalProps) {
