@@ -1,18 +1,25 @@
-import { Injectable } from '@gulux/gulux';
+import { Inject, Injectable } from '@gulux/gulux';
 import type { TaskBrief, TaskListQuery } from '../types';
-import { pickSupervisor, taskRepository } from '../agents/taskRuntime';
+import { SupervisorRuntime } from '../agents/Supervisor/supervisorRuntime';
+import { MongoTaskRepository } from '../repositories/taskRepository';
 import { createTaskEntity, resetTaskForRun } from './taskLifecycleService';
 import { AppError } from '../utils/appError';
 import { isTaskWithinDateRange } from '../utils/taskQuery';
 
 @Injectable()
 export default class TaskService {
+  @Inject()
+  private readonly taskRepository!: MongoTaskRepository;
+
+  @Inject()
+  private readonly supervisorRuntime!: SupervisorRuntime;
+
   public async listTasks(query?: TaskListQuery) {
     const _id = query?._id?.trim().toLowerCase() ?? '';
     const productName = query?.productName?.trim().toLowerCase() ?? '';
     const startDate = query?.startDate?.trim() ?? '';
     const endDate = query?.endDate?.trim() ?? '';
-    const tasks = await taskRepository.list();
+    const tasks = await this.taskRepository.list();
 
     return tasks.filter((task) => {
       const matchesTaskId = _id ? task._id.toLowerCase().includes(_id) : true;
@@ -26,7 +33,7 @@ export default class TaskService {
   }
 
   public async getTaskById(_id: string) {
-    const task = await taskRepository.findById(_id);
+    const task = await this.taskRepository.findById(_id);
     if (!task) {
       throw new AppError('task_not_found', 404);
     }
@@ -34,7 +41,7 @@ export default class TaskService {
   }
 
   public createTask(brief: TaskBrief) {
-    return taskRepository.save(createTaskEntity(brief));
+    return this.taskRepository.save(createTaskEntity(brief));
   }
 
   /**
@@ -50,8 +57,8 @@ export default class TaskService {
       throw new AppError('task_already_started', 400);
     }
     const persistedTask =
-      task.status === 'running' ? task : await taskRepository.save(resetTaskForRun(task));
-    const supervisor = await pickSupervisor(persistedTask);
+      task.status === 'running' ? task : await this.taskRepository.save(resetTaskForRun(task));
+    const supervisor = await this.supervisorRuntime.pick(persistedTask);
     supervisor.start(persistedTask._id);
     return persistedTask;
   }

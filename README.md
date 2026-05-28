@@ -23,24 +23,25 @@ agent/
 ├─ backend/
 │  └─ src/
 │     ├─ agents/
-│     │  ├─ Supervisor/         调度 Agent（fresh start / 崩溃续跑）
+│     │  ├─ Supervisor/
+│     │  │  ├─ supervisorAgent.ts     调度逻辑（fresh start / 崩溃续跑）
+│     │  │  └─ supervisorRuntime.ts   IoC 单例，封装 async checkpointer 的 lazy 初始化
 │     │  ├─ taskGraph/          LangGraph DAG 装配 + 节点模板 + checkpointer
 │     │  ├─ nodes/              各 stage 节点壳文件
 │     │  ├─ subagents/          业务 Agent（脚本/分镜/出图/出片/QA）
 │     │  ├─ SubAgentFactory/    LLM Agent 通用工厂
-│     │  ├─ fornax/             Fornax SDK / Prompt Hub 封装
-│     │  └─ taskRuntime.ts      运行时单例容器（taskRepository + pickSupervisor）
-│     ├─ services/              用例编排层
+│     │  └─ fornax/             Fornax SDK / Prompt Hub 封装
+│     ├─ services/              用例编排层（全部 @Injectable）
 │     │  ├─ taskService             list / create / run
 │     │  ├─ taskLifecycleService    任务实体生命周期
 │     │  ├─ taskRecoveryService     启动时崩溃续跑
 │     │  ├─ stageSchemaService      Zod 校验入口
 │     │  ├─ taskDefinitionService   包装 @aigc/shared
 │     │  └─ assetService
-│     ├─ repositories/          Mongo 持久化
+│     ├─ repositories/          Mongo 持久化（@Injectable）
 │     ├─ controllers/           HTTP 路由
 │     ├─ middlewares/           Cors / 异常 / 404
-│     ├─ app/bootstrap.ts       启动钩子（含 recovery）
+│     ├─ app/bootstrap.ts       @LifecycleHookUnit + didReady（启动后 recovery）
 │     └─ config/                环境配置
 │
 └─ frontend/
@@ -106,13 +107,13 @@ npm run format      # Prettier 全量格式化
 HTTP Route
    │
    ▼
-services/taskService.ts          ← 用例编排（list / create / run）
+services/taskService.ts          ← 用例编排（list / create / run），@Injectable
    │
    ▼
-agents/taskRuntime.ts            ← 单例容器 + pickSupervisor(task)
+agents/Supervisor/supervisorRuntime  ← IoC 单例，按 taskType 分发 SupervisorAgent
    │
    ▼
-agents/Supervisor/supervisorAgent  ← fresh start vs 崩溃续跑
+agents/Supervisor/supervisorAgent    ← fresh start vs 崩溃续跑
    │
    ▼
 agents/taskGraph/createXxxTaskGraph  ← LangGraph DAG
@@ -124,6 +125,10 @@ agents/subagents/*               ← 业务 Agent
 SubAgentFactory/createLLMStageAgent  ← LLM Agent 通用工厂
 ```
 
+> 全部 Service / Repository / Runtime 走 GuluX 的 `@Injectable()` + `@Inject()`，
+> async checkpointer 由 `SupervisorRuntime` 内部 lazy `Promise` 持有，避免污染 IoC 同步构造。
+> 启动后的 `recoverRunningTasks` 通过 `@LifecycleHookUnit() + @LifecycleHook('didReady')` 触发。
+
 ### 3.2 任务运行时序
 
 1. `POST /tasks` → `taskService.createTask` → `taskLifecycleService` 派生空 stage 列表落库
@@ -133,7 +138,7 @@ SubAgentFactory/createLLMStageAgent  ← LLM Agent 通用工厂
    - `running` → 走 checkpointer 续跑
 3. `pickSupervisor(task).start(_id)` 拉起 LangGraph，**不阻塞 HTTP**
 4. `thread_id = task._id`，进度自动写入 MongoDB checkpointer
-5. 进程崩溃后下次启动，`taskRecoveryService` 扫库自动续跑
+5. 进程崩溃后下次启动，`bootstrap` 在 `didReady` 钩子里调用 `taskRecoveryService` 扫库自动续跑
 
 ### 3.3 QA 自动回溯
 
@@ -172,6 +177,7 @@ SubAgentFactory/createLLMStageAgent  ← LLM Agent 通用工厂
 - **契约单一**：所有跨边界类型都从 `@aigc/shared` 导入，禁止前后端各自维护
 - **阶段输出校验**：所有 stage 必须在 `stageSchemaService.ts` 中定义 Zod schema
 - **逻辑收敛**：优先复用 Factory（`createStageNode` / `createLLMStageAgent`），避免冗余壳文件
+- **依赖注入**：Service / Repository / Runtime 全部走 GuluX `@Injectable()` + `@Inject()`，禁止在模块顶层 `new` 实例；启动副作用走 `@LifecycleHookUnit() + @LifecycleHook('didReady')`
 - **不做的事**：暂不实现 Orchestrator / 人工审核 / 手动取消 / 自动重试，除非有明确业务需求
 
 ### Git 提交
@@ -186,11 +192,13 @@ SubAgentFactory/createLLMStageAgent  ← LLM Agent 通用工厂
 ### Backend
 
 - `agents/Supervisor/supervisorAgent.ts`：通过 `graph.getState` 判断有无 checkpoint，决定 fresh start 还是续跑
+- `agents/Supervisor/supervisorRuntime.ts`：`@Injectable()` 单例，内部 lazy `Promise<SupervisorBundle>` 持有 short_video / image_text 两条 graph，对外提供 `pick(task)` 路由
 - `agents/taskGraph/createStageNode.ts`：节点统一模板（写 running → 调 agent → 写 succeeded/failed），含 `createQaConditionalRouter`
 - `agents/SubAgentFactory/createLLMStageAgent.ts`：`getInput → getVariables → LLM → extractValue → zod 校验` 一体化
-- `services/taskService.ts`：HTTP 入口编排
+- `services/taskService.ts`：HTTP 入口编排，`@Inject()` `taskRepository / supervisorRuntime`
 - `services/taskLifecycleService.ts`：`createInitialTaskStages / createTaskEntity / resetTaskForRun / updateTaskStage / updateTaskStatus`
-- `services/taskRecoveryService.ts`：进程启动钩子，扫描 running 任务自动续跑
+- `services/taskRecoveryService.ts`：纯函数，被 `bootstrap.ts` 在 `didReady` 钩子里调用
+- `app/bootstrap.ts`：`@LifecycleHookUnit()` + `@LifecycleHook('didReady')`，从 `app.container` 拿实例触发 recovery
 
 ### Frontend
 

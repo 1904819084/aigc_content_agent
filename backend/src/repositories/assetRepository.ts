@@ -1,7 +1,9 @@
+import { Injectable } from '@gulux/gulux';
 import { env } from '../config/env';
 import type { AssetRepository, AssetResource } from '../types';
 import { getMongoCollection } from './mongoRepository';
 
+@Injectable()
 export class MongoAssetRepository implements AssetRepository {
   private async getCollection() {
     return getMongoCollection<AssetResource>(env.mongoAssetCollectionName);

@@ -1,7 +1,9 @@
+import { Injectable } from '@gulux/gulux';
 import { env } from '../config/env';
 import type { Task, TaskRepository, TaskStageOutput, TaskStageName } from '../types';
 import { getMongoCollection } from './mongoRepository';
 
+@Injectable()
 export class MongoTaskRepository implements TaskRepository {
   private async getCollection() {
     return getMongoCollection<Task>(env.mongoTaskCollectionName);
