@@ -1,6 +1,6 @@
-# AIGC 短视频/图文生成 Agent 平台
+# AIGC 电商内容生成 Agent 平台
 
-基于 LangGraph 的端到端 AIGC 内容生产任务平台，支持 **短视频** 与 **图文** 两类任务的多阶段编排、崩溃续跑、QA 自动回溯。
+基于 LangGraph 的端到端 AIGC 电商内容生产任务平台，支持 **短视频** 与 **图文** 两类任务的多阶段编排、崩溃续跑、QA 自动回溯。
 
 - 后端：Node.js + GuluX (IoC) + LangGraph + MongoDB + Zod
 - 前端：React + TypeScript + Vite + Ant Design + Zustand
@@ -207,14 +207,4 @@ SubAgentFactory/createLLMStageAgent  ← LLM Agent 通用工厂
 
 ---
 
-## 七、可继续推进项
-
-- [ ] **Graph Builder 配置驱动**：让 `createXxxTaskGraph` 也从 `taskDefinitions` 派生 edges，删除 `nodes/` 目录下的壳文件
-- [ ] **前端 Renderer Registry**：在 `StageOutputSection` 按 stageName 分发到脚本卡片 / 分镜表格 / 视频播放器 / QA 评审等结构化视图
-- [ ] **Stage Schema 版本化**：当业务字段开始迭代后再考虑
-
----
-
-## 八、License
-
-Private — 内部项目
+#
