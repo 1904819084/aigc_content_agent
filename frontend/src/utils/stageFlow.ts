@@ -1,10 +1,6 @@
 import { Position } from '@xyflow/react';
 import { TaskStageName, TaskStageStatus, TaskType } from '../constants/task';
-import {
-  findStageDefinition,
-  getTaskDefinition,
-  gridToStageLayout,
-} from '../domain/task/taskDefinitions';
+import { getTaskGraphDefinition } from '../constants/taskGraph';
 import type { Task } from '../types';
 
 const STAGE_NODE_WIDTH = 156;
@@ -30,25 +26,38 @@ export type StageVisualStyle = {
   tone: StageVisualTone;
 };
 
-/**
- * 通过 taskDefinition 派生：阶段 layout 不再各自维护一份字典，依赖 definition 中的 (col, row) 网格。
- * 找不到时回落到 (0, 0)，避免调用方需要处理 undefined（图上多余节点会被叠在原点，便于一眼发现配置遗漏）。
- */
+export function gridToStageLayout(col: number, row: number): StageLayout {
+  const STAGE_NODE_GAP_X = 62;
+  const STAGE_NODE_GAP_Y = 102;
+  const STAGE_CANVAS_PADDING_X = 20;
+  const STAGE_CANVAS_PADDING_Y = 30;
+  const STAGE_NODE_X_STEP = STAGE_NODE_WIDTH + STAGE_NODE_GAP_X;
+  const STAGE_NODE_Y_STEP = STAGE_NODE_HEIGHT + STAGE_NODE_GAP_Y;
+
+  return {
+    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * col,
+    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP * row,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  };
+}
+
 export function getStageLayout(taskType: TaskType, stageName: TaskStageName): StageLayout {
-  const stage = findStageDefinition(taskType, stageName)
-    ?? findStageDefinition(TaskType.ShortVideo, stageName);
-  if (!stage) {
+  const layout =
+    getTaskGraphDefinition(taskType).stageLayouts[stageName]
+    ?? getTaskGraphDefinition(TaskType.ShortVideo).stageLayouts[stageName];
+
+  if (!layout) {
     return gridToStageLayout(0, 0);
   }
-  return gridToStageLayout(stage.layout.col, stage.layout.row);
+  return gridToStageLayout(layout.col, layout.row);
 }
 
 export function getStageDependencies(taskType: TaskType): Array<[TaskStageName, TaskStageName]> {
-  return getTaskDefinition(taskType).dependencies;
+  return getTaskGraphDefinition(taskType).dependencies;
 }
 
-// 默认依赖图按短视频返回，保持原有公共 API。
-export const STAGE_FLOW_DEPENDENCIES = getTaskDefinition(TaskType.ShortVideo).dependencies;
+export const STAGE_FLOW_DEPENDENCIES = getTaskGraphDefinition(TaskType.ShortVideo).dependencies;
 
 export function getStageVisualStyle(status: TaskStageStatus): StageVisualStyle {
   if (status === TaskStageStatus.Completed) {

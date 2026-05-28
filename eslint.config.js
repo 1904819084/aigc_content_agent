@@ -133,7 +133,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['backend/**/*.ts', 'eslint.config.js'],
+    files: ['backend/**/*.ts', 'shared/**/*.ts', 'eslint.config.js'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended, prettierConfig],
     languageOptions: {
       ecmaVersion: 'latest',

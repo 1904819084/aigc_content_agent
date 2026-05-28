@@ -1,5 +1,5 @@
-import { fornaxExecute } from '../../fornax/llm';
-import { formatZodIssues, getStageOutputSchema } from '../../domain/task/stageSchemas';
+import { fornaxExecute } from '../fornax/llm';
+import { formatZodIssues, getStageOutputSchema } from '../../services/stageSchemaService';
 import type { StageOutputMap, Task, TaskStageName } from '../../types';
 import { tryParseAgentJson } from '../../utils/agentOutput';
 import { AppError, toAppError } from '../../utils/appError';

@@ -1,4 +1,4 @@
-import { request } from './http';
+import { request } from './httpService';
 import type { Task, TaskBrief, TaskListQuery } from '../types';
 
 export async function fetchTasks(params?: TaskListQuery) {

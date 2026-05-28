@@ -1,9 +1,8 @@
-import { loadFornaxSdk } from './fornaxSdk';
+import { stripMarkdownCodeFence } from '../../utils/agentOutput';
+import { sanitizeHttpUrl } from '../../utils/url';
 import { getFornaxAuthOptions } from './fornaxAuth';
-import { stripMarkdownCodeFence } from '../utils/agentOutput';
-import { sanitizeHttpUrl } from '../utils/url';
+import { loadFornaxSdk } from './fornaxSdk';
 
-//  标准化图片/视频生成模型返回的结果
 function normalizeMessageParts(parts: unknown) {
   if (!Array.isArray(parts)) {
     return '';
@@ -39,7 +38,6 @@ function normalizeMessageParts(parts: unknown) {
     .join('');
 }
 
-// 标准化文本模型返回的结果
 function normalizeTextResult(result: unknown) {
   if (!result) {
     return '';
@@ -78,7 +76,6 @@ function normalizeTextResult(result: unknown) {
   return '';
 }
 
-// 执行Fornax模型调用
 export async function fornaxExecute({
   promptKey,
   promptVersion,
@@ -110,7 +107,7 @@ export async function fornaxExecute({
   }
 
   try {
-    const model = ptaas(promptKey, {
+    const model = (ptaas as (key: string, options: Record<string, unknown>) => any)(promptKey, {
       ak: auth.ak,
       sk: auth.sk,
       region: auth.region,

@@ -1,9 +1,9 @@
-import { createTaskEntity, resetTaskForRun } from '../domain/task/taskFactory';
 import { Injectable } from '@gulux/gulux';
 import type { TaskBrief, TaskListQuery } from '../types';
+import { pickSupervisor, taskRepository } from '../agents/taskRuntime';
+import { createTaskEntity, resetTaskForRun } from './taskLifecycleService';
 import { AppError } from '../utils/appError';
 import { isTaskWithinDateRange } from '../utils/taskQuery';
-import { pickSupervisor, taskRepository } from './taskRuntime';
 
 @Injectable()
 export default class TaskService {

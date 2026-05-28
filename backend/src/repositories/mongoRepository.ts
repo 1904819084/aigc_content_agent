@@ -17,7 +17,9 @@ export async function getMongoDb() {
   return client.db(env.mongoDbName);
 }
 
-export async function getMongoCollection<TDocument>(collectionName: string): Promise<Collection<TDocument>> {
+export async function getMongoCollection<TDocument>(
+  collectionName: string,
+): Promise<Collection<TDocument>> {
   const db = await getMongoDb();
   return db.collection<TDocument>(collectionName);
 }

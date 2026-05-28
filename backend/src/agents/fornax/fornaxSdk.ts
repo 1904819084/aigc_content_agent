@@ -1,5 +1,12 @@
-// 单例模式加载Fornax SDK
-let cached;
+let cached: {
+  execute: unknown;
+  streamExecute: unknown;
+  ptaas: unknown;
+  fornaxPromptHub: unknown;
+  tracer: unknown;
+  error: Error | null;
+} | null = null;
+
 export async function loadFornaxSdk() {
   if (cached) {
     return cached;
@@ -28,7 +35,9 @@ export async function loadFornaxSdk() {
       typeof components.fornaxPromptHub === 'function' ? components.fornaxPromptHub : null;
     result.ptaas = typeof components.ptaas === 'function' ? components.ptaas : null;
   } catch (error) {
-    result.error = result.error ?? (error instanceof Error ? error : new Error('fornax_components_import_failed'));
+    result.error =
+      result.error
+      ?? (error instanceof Error ? error : new Error('fornax_components_import_failed'));
   }
 
   try {

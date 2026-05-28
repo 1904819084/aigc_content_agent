@@ -1,5 +1,5 @@
 import type { CompiledStateGraph } from '@langchain/langgraph';
-import { updateTaskStatus } from '../../domain/task/taskPipeline';
+import { updateTaskStatus } from '../../services/taskLifecycleService';
 import type { TaskRepository } from '../../types';
 
 /**

@@ -1,6 +1,5 @@
 import type { IFornaxAuthOptions } from '@next-ai/fornax-sdk/services';
 
-// 获取Fornax认证配置
 export function getFornaxAuthOptions(): IFornaxAuthOptions & { telemetry?: boolean } {
   return {
     ak: '5f9cdfcdb9fb4e048003f688e6061e5c',
@@ -16,4 +15,3 @@ export function getFornaxAuthOptions(): IFornaxAuthOptions & { telemetry?: boole
     },
   };
 }
-

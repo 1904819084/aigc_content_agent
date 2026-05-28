@@ -9,7 +9,6 @@ import {
   Res,
   type HTTPResponse,
 } from '@gulux/gulux/application-http';
-import '../bootstrap/taskRecoveryBootstrap';
 import TaskService from '../services/taskService';
 import type { TaskListQuery } from '../types';
 import { AppError } from '../utils/appError';

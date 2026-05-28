@@ -1,6 +1,6 @@
 import { env } from '../config/env';
 import type { Task, TaskRepository, TaskStageOutput, TaskStageName } from '../types';
-import { getMongoCollection } from './mongo';
+import { getMongoCollection } from './mongoRepository';
 
 export class MongoTaskRepository implements TaskRepository {
   private async getCollection() {
@@ -137,8 +137,6 @@ export class MongoTaskRepository implements TaskRepository {
 
     const now = new Date().toISOString();
     const collection = await this.getCollection();
-    // 把回溯目标及其下游 stage 全部重置为 pending，并清掉对应 outputs，
-    // 让 LangGraph 在 fail 分支重跑这些节点时不会被 markStageRunning 的旧 status 干扰。
     const unsetOutputs: Record<string, ''> = {};
     for (const name of stageNames) {
       unsetOutputs[`outputs.${name}`] = '';

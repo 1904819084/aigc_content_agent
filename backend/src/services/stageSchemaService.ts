@@ -1,11 +1,5 @@
 import { z } from 'zod';
-import type { StageOutputMap, TaskStageName } from '../../types';
-
-/**
- * 各 stage 的运行时 schema：单一事实源，z.infer 出来的类型与 StageOutputMap 一一对齐。
- * 每个 stage 的 agent 在解析 LLM 输出时统一通过 STAGE_OUTPUT_SCHEMAS[stageName].safeParse(value) 校验，
- * 替代历史上分散在 agent 内的 buildXxxResultFromJson 手写守卫。
- */
+import type { StageOutputMap, TaskStageName } from '../types';
 
 const trimmedString = z
   .string()
@@ -97,16 +91,6 @@ export const qaReviewResultSchema = z.object({
   suggestions: z.string().default(''),
 });
 
-/**
- * 每个 stage 对应一个 zod schema。`unknown` 输入 → 精确的 `StageOutputMap[S]` 输出。
- *
- * 内部存储类型用 `z.ZodTypeAny` 是为了规避 zod3 + strict TS 下 transform/default/trim 等链式
- * 操作产生的输入类型与 `StageOutputMap[S]` 静态形状不一致的死锁问题。
- * 出口 `getStageOutputSchema` 会断言为 `z.ZodType<StageOutputMap[S]>`，让调用方拿到精确的
- * `parse` 返回类型；运行时由 schema 自身保证形状正确。
- *
- * 注意：新增 stage 时，TypeScript 会强制此 Record 补齐 key（因为 keys 类型是 TaskStageName）。
- */
 export const STAGE_OUTPUT_SCHEMAS: Record<TaskStageName, z.ZodTypeAny> = {
   script_generating: scriptResultSchema,
   storyboard_generating: storyboardResultSchema,
@@ -126,9 +110,6 @@ export function getStageOutputSchema<S extends TaskStageName>(
   return STAGE_OUTPUT_SCHEMAS[stageName] as z.ZodType<StageOutputMap[S]>;
 }
 
-/**
- * 把 zod 校验失败的 issue 列表压成单行错误信息，方便日志定位 LLM 哪个字段不合法。
- */
 export function formatZodIssues(error: z.ZodError): string {
   return error.issues
     .map((issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`)

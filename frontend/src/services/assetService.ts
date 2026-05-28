@@ -1,4 +1,4 @@
-import { request } from './http';
+import { request } from './httpService';
 import type { AssetResource } from '../types';
 
 export async function uploadAssets(files: File[]) {

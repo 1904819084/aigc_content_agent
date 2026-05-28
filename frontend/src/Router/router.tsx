@@ -4,8 +4,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { StatusIcon } from '../components/common/StatusIcon';
 import { TaskStageStatus } from '../constants/task';
 
-const TaskListPage = lazy(() => import('../pages/TaskList'));
-const TaskDetailPage = lazy(() => import('../pages/TaskDetail'));
+const TaskListPage = lazy(() => import('../pages/TaskList/index'));
+const TaskDetailPage = lazy(() => import('../pages/TaskDetail/index'));
 
 export function AppRouter() {
   return (

@@ -1,6 +1,6 @@
 import { env } from '../config/env';
 import type { AssetRepository, AssetResource } from '../types';
-import { getMongoCollection } from './mongo';
+import { getMongoCollection } from './mongoRepository';
 
 export class MongoAssetRepository implements AssetRepository {
   private async getCollection() {

@@ -1,6 +1,6 @@
 import { Injectable } from '@gulux/gulux';
-import { MongoAssetRepository } from '../data/mongoAssetRepository';
 import type { UploadedAssetFile } from '../types';
+import { MongoAssetRepository } from '../repositories/assetRepository';
 import { AppError } from '../utils/appError';
 
 const assetRepository = new MongoAssetRepository();

@@ -7,13 +7,12 @@ import {
   TaskStatus,
   TaskType,
 } from '../constants/task';
-import { findStageDefinition } from '../domain/task/taskDefinitions';
+import { findSharedTaskStageDefinition } from '@aigc/shared';
 import type { Task, TaskStage } from '../types';
 
 export function getTaskStageLabel(stageName: TaskStageName, taskType?: TaskType) {
-  // 单一事实源：先按 taskType 从 definition 取，找不到再回退到全局默认 label。
   if (taskType) {
-    const overridden = findStageDefinition(taskType, stageName)?.label;
+    const overridden = findSharedTaskStageDefinition(taskType, stageName)?.label;
     if (overridden) {
       return overridden;
     }

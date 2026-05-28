@@ -1,8 +1,11 @@
 import path from 'node:path';
 import type { ApplicationConfig } from '@gulux/gulux';
+import { bootstrapApplication } from '../app/bootstrap';
 import CorsMiddleware from '../middlewares/CorsMiddleware';
 import GlobalExceptionMiddleware from '../middlewares/GlobalExceptionMiddleware';
 import NotFoundMiddleware from '../middlewares/NotFoundMiddleware';
+
+bootstrapApplication();
 
 const runtimeDataRoot = path.resolve(process.cwd(), 'runtime-data');
 const uploadsRoot = path.resolve(runtimeDataRoot, 'uploads');

@@ -1,10 +1,8 @@
-import { loadFornaxSdk } from './fornaxSdk';
 import { getFornaxAuthOptions } from './fornaxAuth';
+import { loadFornaxSdk } from './fornaxSdk';
 
-// 单例模式加载Fornax Prompt Hub
-let cachedHub;
+let cachedHub: unknown = null;
 
-// 获取Fornax Prompt Hub
 export async function getFornaxPromptHub() {
   if (cachedHub) {
     return cachedHub;
@@ -21,7 +19,7 @@ export async function getFornaxPromptHub() {
     return null;
   }
 
-  cachedHub = fornaxPromptHub({
+  cachedHub = (fornaxPromptHub as (options: Record<string, unknown>) => unknown)({
     ak: auth.ak,
     sk: auth.sk,
     region: auth.region,
@@ -31,7 +29,6 @@ export async function getFornaxPromptHub() {
   return cachedHub;
 }
 
-// 获取Fornax Prompt
 export async function getFornaxPrompt({
   key,
   version,
@@ -51,7 +48,7 @@ export async function getFornaxPrompt({
     return null;
   }
 
-  const prompt = await hub.get({
+  const prompt = await (hub as { get: (params: Record<string, unknown>) => Promise<unknown> }).get({
     key,
     version: version || undefined,
     releaseLabel: releaseLabel || undefined,
