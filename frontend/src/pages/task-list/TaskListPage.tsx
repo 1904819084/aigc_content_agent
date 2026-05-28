@@ -8,7 +8,7 @@ import { TaskListTable } from '../../components/task/TaskListTable';
 import { TaskSummaryCards } from '../../components/task/TaskSummaryCards';
 import { TaskStatus } from '../../constants/task';
 import { useTaskWorkbench } from '../../hooks/useTaskWorkbench';
-import type { FetchTasksParams } from '../../services/taskService';
+import type { TaskListQuery } from '../../types';
 import { isTaskRunningStatus } from '../../utils/task';
 
 const { Paragraph, Text } = Typography;
@@ -37,7 +37,7 @@ export function TaskListPage() {
   const runningCount = tasks.filter((task) => isTaskRunningStatus(task.status)).length;
   const completedCount = tasks.filter((task) => task.status === TaskStatus.Completed).length;
 
-  function buildTaskQuery(values: TaskListFilterValues): FetchTasksParams {
+  function buildTaskQuery(values: TaskListFilterValues): TaskListQuery {
     const dateRange = values.createdAtRange ?? null;
 
     return {

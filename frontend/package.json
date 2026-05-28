@@ -11,6 +11,7 @@
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" vite.config.ts --fix"
   },
   "dependencies": {
+    "@aigc/shared": "*",
     "@ant-design/icons": "^5.5.2",
     "@uiw/react-json-view": "^2.0.0-alpha.43",
     "@xyflow/react": "^12.10.2",

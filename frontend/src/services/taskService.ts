@@ -1,14 +1,7 @@
 import { request } from './http';
-import type { Task, TaskBrief } from '../types';
+import type { Task, TaskBrief, TaskListQuery } from '../types';
 
-export interface FetchTasksParams {
-  _id?: string;
-  productName?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-export async function fetchTasks(params?: FetchTasksParams) {
+export async function fetchTasks(params?: TaskListQuery) {
   return request<{ items: Task[] }>('/api/tasks', {
     params,
   });

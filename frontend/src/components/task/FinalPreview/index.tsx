@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons';
 import { useEffect, useMemo, useState } from 'react';
 import { TaskStageName, TaskType } from '../../../constants/task';
-import type { Task } from '../../../types';
+import type { EditingResult, ImageGeneratingResult, Task } from '../../../types';
 import styles from './index.module.less';
 
 
@@ -14,18 +14,9 @@ interface FinalPreviewProps {
   task: Task;
 }
 
-interface ImageGeneratingResultItem {
-  shotId: string;
-  image: string;
-}
-
-interface EditingResultItem {
-  video: string;
-}
-
 function getImageUrls(task: Task): string[] {
   const output = task.outputs?.[TaskStageName.ImageGenerating]?.output as
-    | ImageGeneratingResultItem[]
+    | ImageGeneratingResult[]
     | undefined;
   if (!Array.isArray(output)) {
     return [];
@@ -37,7 +28,7 @@ function getImageUrls(task: Task): string[] {
 
 function getFinalVideoUrl(task: Task): string | null {
   const output = task.outputs?.[TaskStageName.Editing]?.output as
-    | EditingResultItem
+    | EditingResult
     | undefined;
   return typeof output?.video === 'string' && output.video.length > 0 ? output.video : null;
 }

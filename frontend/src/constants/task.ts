@@ -1,34 +1,13 @@
-export enum TaskType {
-  ShortVideo = 'short_video',
-  ImageText = 'image_text',
-}
+/**
+ * 前端任务相关枚举与展示文案：
+ * - 枚举值（TaskType / TaskStageName / TaskStatus / TaskStageStatus）从 @aigc/shared re-export，
+ *   保证与后端 100% 同步。`as const` 形态保留 `TaskStageName.ScriptGenerating` 风格的访问，
+ *   组件层调用方式与原 enum 一致。
+ * - 展示文案/颜色映射等纯前端关心的内容继续留在本文件。
+ */
+import { TaskStageName, TaskStageStatus, TaskStatus, TaskType } from '@aigc/shared';
 
-export enum TaskStageName {
-  ScriptGenerating = 'script_generating',
-  StoryboardGenerating = 'storyboard_generating',
-  ImagePromptGenerating = 'image_prompt_generating',
-  ImageGenerating = 'image_generating',
-  ImageQaReviewing = 'image_qa_reviewing',
-  VideoPromptGenerating = 'video_prompt_generating',
-  VideoGenerating = 'video_generating',
-  VideoQaReviewing = 'video_qa_reviewing',
-  Editing = 'editing',
-  EditingQaReviewing = 'editing_qa_reviewing',
-}
-
-export enum TaskStageStatus {
-  Pending = 'pending',
-  Running = 'running',
-  Completed = 'completed',
-  Failed = 'failed',
-}
-
-export enum TaskStatus {
-  Pending = 'pending',
-  Running = 'running',
-  Completed = 'completed',
-  Failed = 'failed',
-}
+export { TaskStageName, TaskStageStatus, TaskStatus, TaskType };
 
 export const TASK_STAGE_LABELS: Record<TaskStageName, string> = {
   [TaskStageName.ScriptGenerating]: '短视频剧本生成',
