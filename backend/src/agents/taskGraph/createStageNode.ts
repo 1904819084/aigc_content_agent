@@ -1,4 +1,10 @@
-import type { QaReviewResult, Task, TaskRepository, TaskStageName } from '../../types';
+import type {
+  QaReviewResult,
+  StageOutputMap,
+  Task,
+  TaskRepository,
+  TaskStageName,
+} from '../../types';
 import { createStageOutput } from '../../utils/createStageOutput';
 
 // LangGraph 节点接收到的最小 state，仅承载任务 _id（详情走 Mongo）。
@@ -6,10 +12,14 @@ type TaskGraphState = {
   _id: string;
 };
 
-// 业务 agent 统一签名：消费 task，产出 input/output 元数据。
-type StageAgent = (task: Task) => Promise<{
+/**
+ * 业务 agent 统一签名（按 stageName 泛型化）：
+ *  - input：写入 Mongo 的输入快照（结构由各 agent 自由选择，仅约束为可序列化对象）
+ *  - output：必须满足 StageOutputMap[S]，让上下游契约一处变更全链路报错
+ */
+export type StageAgent<S extends TaskStageName = TaskStageName> = (task: Task) => Promise<{
   input: Record<string, unknown>;
-  output: unknown;
+  output: StageOutputMap[S];
 }>;
 
 async function setStageRunning(
@@ -24,11 +34,11 @@ async function setStageRunning(
   }
 }
 
-async function setStageCompleted(
+async function setStageCompleted<S extends TaskStageName>(
   taskRepository: TaskRepository,
   _id: string,
-  stageName: TaskStageName,
-  outputData: Awaited<ReturnType<StageAgent>>,
+  stageName: S,
+  outputData: Awaited<ReturnType<StageAgent<S>>>,
 ) {
   const output = createStageOutput(stageName, outputData);
   const task = await taskRepository.markStageCompleted(_id, stageName, output);
@@ -64,10 +74,10 @@ async function setStageFailed(
  *   3. 把阶段写回 completed 或 failed
  *   4. 返回空 state，避免 DAG 并发分支回写共享 state 触发冲突
  */
-export function createStageNode(
+export function createStageNode<S extends TaskStageName>(
   taskRepository: TaskRepository,
-  stageName: TaskStageName,
-  stageAgent: StageAgent,
+  stageName: S,
+  stageAgent: StageAgent<S>,
 ) {
   return async (state: TaskGraphState) => {
     const _id = state._id;

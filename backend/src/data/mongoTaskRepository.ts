@@ -67,10 +67,10 @@ export class MongoTaskRepository implements TaskRepository {
     );
   }
 
-  async markStageCompleted(
+  async markStageCompleted<S extends TaskStageName>(
     _id: string,
-    stageName: TaskStageName,
-    output: TaskStageOutput,
+    stageName: S,
+    output: TaskStageOutput<S>,
   ): Promise<Task | null> {
     const now = new Date().toISOString();
 

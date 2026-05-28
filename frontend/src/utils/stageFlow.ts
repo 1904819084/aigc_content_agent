@@ -1,15 +1,16 @@
 import { Position } from '@xyflow/react';
 import { TaskStageName, TaskStageStatus, TaskType } from '../constants/task';
+import {
+  findStageDefinition,
+  getTaskDefinition,
+  gridToStageLayout,
+} from '../domain/task/taskDefinitions';
 import type { Task } from '../types';
 
 const STAGE_NODE_WIDTH = 156;
 const STAGE_NODE_HEIGHT = 82;
-const STAGE_NODE_GAP_X = 62;
-const STAGE_NODE_GAP_Y = 102;
 const STAGE_CANVAS_PADDING_X = 20;
 const STAGE_CANVAS_PADDING_Y = 30;
-const STAGE_NODE_X_STEP = STAGE_NODE_WIDTH + STAGE_NODE_GAP_X;
-const STAGE_NODE_Y_STEP = STAGE_NODE_HEIGHT + STAGE_NODE_GAP_Y;
 const STAGE_CANVAS_EXTRA_RIGHT = 92;
 
 export type StageLayout = {
@@ -29,133 +30,25 @@ export type StageVisualStyle = {
   tone: StageVisualTone;
 };
 
-const SHORT_VIDEO_STAGE_LAYOUT_MAP: Record<TaskStageName, StageLayout> = {
-  [TaskStageName.ScriptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.StoryboardGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.ImagePromptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.VideoPromptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.ImageGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 3,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.ImageQaReviewing]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 4,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.VideoGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 5,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.VideoQaReviewing]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 6,
-    y: STAGE_CANVAS_PADDING_Y + STAGE_NODE_Y_STEP,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.Editing]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 7,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.EditingQaReviewing]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 8,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-};
-
-const IMAGE_TEXT_STAGE_LAYOUT_MAP: Partial<Record<TaskStageName, StageLayout>> = {
-  [TaskStageName.ScriptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.ImagePromptGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.ImageGenerating]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 2,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-  [TaskStageName.ImageQaReviewing]: {
-    x: STAGE_CANVAS_PADDING_X + STAGE_NODE_X_STEP * 3,
-    y: STAGE_CANVAS_PADDING_Y,
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-  },
-};
-
-const SHORT_VIDEO_STAGE_DEPENDENCIES: Array<[TaskStageName, TaskStageName]> = [
-  [TaskStageName.ScriptGenerating, TaskStageName.StoryboardGenerating],
-  // Storyboard 之后双链路并发：分镜图链路 + 分镜视频提示词。
-  [TaskStageName.StoryboardGenerating, TaskStageName.ImagePromptGenerating],
-  [TaskStageName.StoryboardGenerating, TaskStageName.VideoPromptGenerating],
-  [TaskStageName.ImagePromptGenerating, TaskStageName.ImageGenerating],
-  [TaskStageName.ImageGenerating, TaskStageName.ImageQaReviewing],
-  // VideoGenerating 等待 image_qa pass + video_prompt 都完成（后端通过 Sink 节点保证 AND-join）。
-  [TaskStageName.ImageQaReviewing, TaskStageName.VideoGenerating],
-  [TaskStageName.VideoPromptGenerating, TaskStageName.VideoGenerating],
-  [TaskStageName.VideoGenerating, TaskStageName.VideoQaReviewing],
-  [TaskStageName.VideoQaReviewing, TaskStageName.Editing],
-  [TaskStageName.Editing, TaskStageName.EditingQaReviewing],
-];
-
-const IMAGE_TEXT_STAGE_DEPENDENCIES: Array<[TaskStageName, TaskStageName]> = [
-  [TaskStageName.ScriptGenerating, TaskStageName.ImagePromptGenerating],
-  [TaskStageName.ImagePromptGenerating, TaskStageName.ImageGenerating],
-  [TaskStageName.ImageGenerating, TaskStageName.ImageQaReviewing],
-];
-
+/**
+ * 通过 taskDefinition 派生：阶段 layout 不再各自维护一份字典，依赖 definition 中的 (col, row) 网格。
+ * 找不到时回落到 (0, 0)，避免调用方需要处理 undefined（图上多余节点会被叠在原点，便于一眼发现配置遗漏）。
+ */
 export function getStageLayout(taskType: TaskType, stageName: TaskStageName): StageLayout {
-  if (taskType === TaskType.ImageText) {
-    return (
-      IMAGE_TEXT_STAGE_LAYOUT_MAP[stageName] ?? SHORT_VIDEO_STAGE_LAYOUT_MAP[stageName]
-    );
+  const stage = findStageDefinition(taskType, stageName)
+    ?? findStageDefinition(TaskType.ShortVideo, stageName);
+  if (!stage) {
+    return gridToStageLayout(0, 0);
   }
-  return SHORT_VIDEO_STAGE_LAYOUT_MAP[stageName];
+  return gridToStageLayout(stage.layout.col, stage.layout.row);
 }
 
 export function getStageDependencies(taskType: TaskType): Array<[TaskStageName, TaskStageName]> {
-  return taskType === TaskType.ImageText
-    ? IMAGE_TEXT_STAGE_DEPENDENCIES
-    : SHORT_VIDEO_STAGE_DEPENDENCIES;
+  return getTaskDefinition(taskType).dependencies;
 }
 
-export const STAGE_FLOW_DEPENDENCIES = SHORT_VIDEO_STAGE_DEPENDENCIES;
+// 默认依赖图按短视频返回，保持原有公共 API。
+export const STAGE_FLOW_DEPENDENCIES = getTaskDefinition(TaskType.ShortVideo).dependencies;
 
 export function getStageVisualStyle(status: TaskStageStatus): StageVisualStyle {
   if (status === TaskStageStatus.Completed) {

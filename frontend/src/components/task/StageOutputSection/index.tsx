@@ -1,4 +1,4 @@
-import { Card, Empty, Space } from 'antd';
+import { Card, Empty, message, Space } from 'antd';
 import JsonView from '@uiw/react-json-view';
 import { ImageList } from '../../common/ImageList';
 import type { AssetResource, TaskStageOutput } from '../../../types';
@@ -64,6 +64,7 @@ export function StageOutputSection(props: StageOutputSectionProps) {
               displayDataTypes={false}
               displayObjectSize
               enableClipboard
+              onCopied={() => message.success('复制成功')}
             />
           </div>
         )}
@@ -79,6 +80,7 @@ export function StageOutputSection(props: StageOutputSectionProps) {
             displayDataTypes={false}
             displayObjectSize
             enableClipboard
+            onCopied={() => message.success('复制成功')}
           />
         </div>
       </Card>

@@ -1,23 +1,11 @@
-import { fornaxExecute } from '../../fornax/llm';
-import type {
-  ImagePromptGeneratingResult,
-  ScriptResult,
-  StoryboardShotResult,
-  Task,
-} from '../../types';
-import { tryParseAgentJson } from '../../utils/agentOutput';
-import { AppError, toAppError } from '../../utils/appError';
+import type { ImagePromptGeneratingResult, Task } from '../../types';
 import { getStageResult } from '../../utils/getStageResult';
+import { buildJsonResultParser, createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
 
 const PROMPT_KEY = 'demo.image_prompt_generate.prompt';
 
 function buildImagePromptResultFromJson(value: unknown): ImagePromptGeneratingResult[] | null {
-  let promptValues: unknown[];
-  if (Array.isArray(value)) {
-    promptValues = value;
-  }  else {
-    promptValues = [];
-  }
+  const promptValues: unknown[] = Array.isArray(value) ? value : [];
   if (promptValues.length === 0) {
     return null;
   }
@@ -34,38 +22,19 @@ function buildImagePromptResultFromJson(value: unknown): ImagePromptGeneratingRe
 }
 
 // 短视频分镜图/图文提示词生成 agent
-export async function runImagePromptGeneratingAgent(task: Task) {
-  const taskType = task.brief.taskType ?? 'short_video';
-
-  // 短视频取 storyboard，图文取 script的 sections。
-  const upstreamInput =
-    taskType === 'image_text'
-      ? { imageText_Script_Sections: getStageResult<ScriptResult>(task, 'script_generating').sections || [] }
-      : { StoryboardShot: getStageResult<StoryboardShotResult[]>(task, 'storyboard_generating') };
-
-  try {
-    const response = await fornaxExecute({
-      promptKey: PROMPT_KEY,
-      variables: Object.fromEntries(
-        Object.entries(upstreamInput).map(([key, value]) => [key, JSON.stringify(value, null, 2)]),
-      ),
-      callOptions: {},
-    });
-
-    const result =
-      response.ok && response.text
-        ? buildImagePromptResultFromJson(tryParseAgentJson(response.text))
-        : null;
-
-    if (!result || result.length === 0) {
-      throw new AppError('fornax_image_prompt_result_invalid_schema', 502);
-    }
-
-    return {
-      input: upstreamInput,
-      output: result,
-    };
-  } catch (error) {
-    throw toAppError(error, 'fornax_image_prompt_generating_failed', 502);
-  }
-}
+export const runImagePromptGeneratingAgent = createLLMStageAgent<'image_prompt_generating'>({
+  promptKey: PROMPT_KEY,
+  // 短视频取 storyboard，图文取 script 的 sections。
+  getInput: (task: Task) => {
+    const taskType = task.brief.taskType ?? 'short_video';
+    return taskType === 'image_text'
+      ? { imageText_Script_Sections: getStageResult(task, 'script_generating').sections || [] }
+      : { StoryboardShot: getStageResult(task, 'storyboard_generating') };
+  },
+  parseResult: buildJsonResultParser<'image_prompt_generating', void>((value) => {
+    const result = buildImagePromptResultFromJson(value);
+    return result && result.length > 0 ? result : null;
+  }),
+  invalidSchemaError: 'fornax_image_prompt_result_invalid_schema',
+  executeError: 'fornax_image_prompt_generating_failed',
+});

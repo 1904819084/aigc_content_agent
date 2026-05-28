@@ -43,18 +43,6 @@ export const TASK_STAGE_LABELS: Record<TaskStageName, string> = {
   [TaskStageName.EditingQaReviewing]: '短视频最终成片质检',
 };
 
-// 按 TaskType 覆盖默认 label，仅声明与默认不同的 stage。
-export const TASK_STAGE_LABELS_BY_TYPE: Partial<
-  Record<TaskType, Partial<Record<TaskStageName, string>>>
-> = {
-  [TaskType.ImageText]: {
-    [TaskStageName.ScriptGenerating]: '图文剧本生成',
-    [TaskStageName.ImagePromptGenerating]: '图文生图提示词生成',
-    [TaskStageName.ImageGenerating]: '图文生成',
-    [TaskStageName.ImageQaReviewing]: '图文质检',
-  },
-};
-
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   [TaskStatus.Pending]: '未开始',
   [TaskStatus.Running]: '执行中',

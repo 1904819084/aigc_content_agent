@@ -1,8 +1,6 @@
-import { fornaxExecute } from '../../fornax/llm';
-import type { StoryboardShotResult, Task, VideoPromptGeneratingResult } from '../../types';
-import { tryParseAgentJson } from '../../utils/agentOutput';
-import { AppError, toAppError } from '../../utils/appError';
+import type { Task, VideoPromptGeneratingResult } from '../../types';
 import { getStageResult } from '../../utils/getStageResult';
+import { buildJsonResultParser, createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
 
 const PROMPT_KEY = 'demo.video_prompt_generate.prompt';
 
@@ -39,32 +37,19 @@ function buildVideoPromptResultFromJson(value: unknown): VideoPromptGeneratingRe
 }
 
 // 短视频分镜视频提示词生成agent
-export async function runVideoPromptGeneratingAgent(task: Task) {
-  const storyboard = getStageResult<StoryboardShotResult[]>(task, 'storyboard_generating');
-
-  try {
-    const response = await fornaxExecute({
-      promptKey: PROMPT_KEY,
-      variables: {
-        StoryboardShot: JSON.stringify(storyboard, null, 2),
-      },
-      callOptions: {},
-    });
-
-    const result =
-      response.ok && response.text
-        ? buildVideoPromptResultFromJson(tryParseAgentJson(response.text))
-        : null;
-
-    if (!result || result.length===0) throw new AppError('fornax_video_prompt_result_invalid_schema', 502);
-
-    return {
-      input: {
-        storyboard,
-      },
-      output: result,
-    };
-  } catch (error) {
-    throw toAppError(error, 'fornax_video_prompt_generating_failed', 502);
-  }
-}
+export const runVideoPromptGeneratingAgent = createLLMStageAgent<'video_prompt_generating'>({
+  promptKey: PROMPT_KEY,
+  getInput: (task: Task) => ({
+    storyboard: getStageResult(task, 'storyboard_generating'),
+  }),
+  // input 中的 storyboard 字段需要以 StoryboardShot 名义传给 prompt
+  getVariables: (input) => ({
+    StoryboardShot: JSON.stringify(input.storyboard, null, 2),
+  }),
+  parseResult: buildJsonResultParser<'video_prompt_generating', void>((value) => {
+    const result = buildVideoPromptResultFromJson(value);
+    return result && result.length > 0 ? result : null;
+  }),
+  invalidSchemaError: 'fornax_video_prompt_result_invalid_schema',
+  executeError: 'fornax_video_prompt_generating_failed',
+});

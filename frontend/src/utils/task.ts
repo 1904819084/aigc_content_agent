@@ -1,6 +1,5 @@
 import {
   TASK_STAGE_LABELS,
-  TASK_STAGE_LABELS_BY_TYPE,
   TASK_STAGE_STATUS_LABELS,
   TASK_STATUS_LABELS,
   TaskStageName,
@@ -8,11 +7,13 @@ import {
   TaskStatus,
   TaskType,
 } from '../constants/task';
+import { findStageDefinition } from '../domain/task/taskDefinitions';
 import type { Task, TaskStage } from '../types';
 
 export function getTaskStageLabel(stageName: TaskStageName, taskType?: TaskType) {
+  // 单一事实源：先按 taskType 从 definition 取，找不到再回退到全局默认 label。
   if (taskType) {
-    const overridden = TASK_STAGE_LABELS_BY_TYPE[taskType]?.[stageName];
+    const overridden = findStageDefinition(taskType, stageName)?.label;
     if (overridden) {
       return overridden;
     }

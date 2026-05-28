@@ -1,11 +1,8 @@
-import { fornaxExecute } from '../../fornax/llm';
-import type { ScriptResult, StoryboardShotResult, Task } from '../../types';
-import { tryParseAgentJson } from '../../utils/agentOutput';
-import { AppError, toAppError } from '../../utils/appError';
+import type { StoryboardShotResult, Task } from '../../types';
 import { getStageResult } from '../../utils/getStageResult';
+import { buildJsonResultParser, createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
 
 const PROMPT_KEY = 'demo.stotyboard_generate_agent.prompt';
-
 
 function buildStoryboardResultFromJson(value: unknown): StoryboardShotResult[] | null {
   const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
@@ -27,39 +24,19 @@ function buildStoryboardResultFromJson(value: unknown): StoryboardShotResult[] |
 }
 
 // 短视频分镜脚本生成agent
-export async function runStoryboardGeneratingAgent(task: Task) {
-  const script = getStageResult(task, 'script_generating') as ScriptResult;
-
-  try {
-    const response = await fornaxExecute({
-      promptKey: PROMPT_KEY,
-      variables: {
-        video_script: JSON.stringify(script, null, 2),
-      },
-      callOptions: {},
-    });
-
-    if (!response.ok || !response.text) {
-      throw new AppError(
-        typeof response.error === 'string' && response.error ? response.error : 'fornax_execute_failed',
-        502,
-      );
-    }
-
-    const result =
-      buildStoryboardResultFromJson(tryParseAgentJson(response.text)) 
-
-    if (!result || result.length === 0) {
-      throw new AppError('fornax_storyboard_result_invalid_schema', 502);
-    }
-
-    return {
-      input: {
-        script,
-      },
-      output:result,
-    };
-  } catch (error) {
-    throw toAppError(error, 'fornax_storyboard_generating_failed', 502);
-  }
-}
+export const runStoryboardGeneratingAgent = createLLMStageAgent<'storyboard_generating'>({
+  promptKey: PROMPT_KEY,
+  getInput: (task: Task) => ({
+    script: getStageResult(task, 'script_generating'),
+  }),
+  // input 中的 script 字段需要以 video_script 名义传给 prompt
+  getVariables: (input) => ({
+    video_script: JSON.stringify(input.script, null, 2),
+  }),
+  parseResult: buildJsonResultParser<'storyboard_generating', void>((value) => {
+    const result = buildStoryboardResultFromJson(value);
+    return result && result.length > 0 ? result : null;
+  }),
+  invalidSchemaError: 'fornax_storyboard_result_invalid_schema',
+  executeError: 'fornax_storyboard_generating_failed',
+});

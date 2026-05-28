@@ -1,14 +1,7 @@
-import { fornaxExecute } from '../../fornax/llm';
-import type {
-  ImageGeneratingResult,
-  Task,
-  VideoGeneratingResult,
-  VideoPromptGeneratingResult,
-} from '../../types';
-import { tryParseAgentJson } from '../../utils/agentOutput';
-import { AppError, toAppError } from '../../utils/appError';
+import type { Task, VideoGeneratingResult } from '../../types';
 import { getStageResult } from '../../utils/getStageResult';
 import { sanitizeHttpUrl } from '../../utils/url';
+import { buildJsonResultParser, createLLMStageAgent } from '../SubAgentFactory/createLLMStageAgent';
 
 const PROMPT_KEY = 'demo.video_generate_agent.prompt';
 
@@ -69,37 +62,13 @@ function buildVideoGeneratingResultFromJson(value: unknown): VideoGeneratingResu
 }
 
 // 短视频分镜视频生成agent
-export async function runVideoGeneratingAgent(task: Task) {
-  const imageList = getStageResult<ImageGeneratingResult[]>(task, 'image_generating');
-  const videoPromptList = getStageResult<VideoPromptGeneratingResult[]>(task, 'video_prompt_generating');
-
-  try {
-    const response = await fornaxExecute({
-      promptKey: PROMPT_KEY,
-      variables: {
-        VideoPromptList: JSON.stringify(videoPromptList, null, 2),
-        ImageList: JSON.stringify(imageList, null, 2),
-      },
-      callOptions: {},
-    });
-
-    const result =
-      response.ok && response.text
-        ? buildVideoGeneratingResultFromJson(tryParseAgentJson(response.text))
-        : null;
-
-    if (!result || result.length === 0) {
-      throw new AppError('fornax_video_generating_result_invalid_schema', 502);
-    }
-
-    return {
-      input: {
-        VideoPromptList: videoPromptList,
-        ImageList: imageList,
-      },
-      output: result,
-    };
-  } catch (error) {
-    throw toAppError(error, 'fornax_video_generating_failed', 502);
-  }
-}
+export const runVideoGeneratingAgent = createLLMStageAgent<'video_generating'>({
+  promptKey: PROMPT_KEY,
+  getInput: (task: Task) => ({
+    VideoPromptList: getStageResult(task, 'video_prompt_generating'),
+    ImageList: getStageResult(task, 'image_generating'),
+  }),
+  parseResult: buildJsonResultParser<'video_generating', void>(buildVideoGeneratingResultFromJson),
+  invalidSchemaError: 'fornax_video_generating_result_invalid_schema',
+  executeError: 'fornax_video_generating_failed',
+});

@@ -113,6 +113,22 @@ export interface QaReviewResult {
   suggestions: string;
 }
 
+/**
+ * 阶段输出契约表：把每个 stageName 映射到精确的 output 类型。
+ */
+export interface StageOutputMap {
+  script_generating: ScriptResult;
+  storyboard_generating: StoryboardShotResult[];
+  image_prompt_generating: ImagePromptGeneratingResult[];
+  image_generating: ImageGeneratingResult[];
+  image_qa_reviewing: QaReviewResult;
+  video_prompt_generating: VideoPromptGeneratingResult[];
+  video_generating: VideoGeneratingResult[];
+  video_qa_reviewing: QaReviewResult;
+  editing: EditingResult;
+  editing_qa_reviewing: QaReviewResult;
+}
+
 export interface TaskStage {
   name: TaskStageName;
   status: TaskStageStatus;
@@ -123,11 +139,15 @@ export interface TaskStage {
   attempts: number;
 }
 
-export interface TaskStageOutput {
-  stageName: TaskStageName;
+/**
+ * 阶段输出快照。`S` 为具体的 stageName 时 output 收紧到 StageOutputMap[S]，
+ * 不带泛型时退化为 unknown，兼容老调用方（例如序列化、跨任意 stage 的工具方法）。
+ */
+export interface TaskStageOutput<S extends TaskStageName = TaskStageName> {
+  stageName: S;
   generatedAt: string;
   input: Record<string, unknown>;
-  output: unknown;
+  output: S extends keyof StageOutputMap ? StageOutputMap[S] : unknown;
 }
 
 export interface Task {
@@ -137,7 +157,7 @@ export interface Task {
   status: TaskStatus;
   currentStage: TaskStageName | null;
   stages: TaskStage[];
-  outputs: Partial<Record<TaskStageName, TaskStageOutput>>;
+  outputs: Partial<{ [S in TaskStageName]: TaskStageOutput<S> }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -147,7 +167,11 @@ export interface TaskRepository {
   findById(_id: string): Promise<Task | null>;
   save(task: Task): Promise<Task>;
   markStageRunning(_id: string, stageName: TaskStageName): Promise<Task | null>;
-  markStageCompleted(_id: string, stageName: TaskStageName, output: TaskStageOutput): Promise<Task | null>;
+  markStageCompleted<S extends TaskStageName>(
+    _id: string,
+    stageName: S,
+    output: TaskStageOutput<S>,
+  ): Promise<Task | null>;
   markStageFailed(_id: string, stageName: TaskStageName, errorMessage: string): Promise<Task | null>;
   // QA 失败回溯：累加 QA 阶段 attempts
   incrementStageAttempts(_id: string, stageName: TaskStageName): Promise<Task | null>;
