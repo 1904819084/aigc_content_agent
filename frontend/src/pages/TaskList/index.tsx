@@ -1,7 +1,7 @@
 import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Col, DatePicker, Form, Input, Row, Space, Typography } from 'antd';
+import { Alert, Button, Card, Col, DatePicker, Form, Input, Row, Space, Typography, message } from 'antd';
 import type { Dayjs } from 'dayjs';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { AppShell } from '../../components/common/AppShell';
 import { PageHero } from '../../components/common/PageHero';
 import { CreateTaskModal } from '../../components/task/CreateTaskModal';
@@ -23,19 +23,14 @@ interface TaskListFilterValues {
 }
 
 export function TaskListPage() {
-  const navigate = useNavigate();
   const { tasks, loading: listLoading, error: listError, setFilters, refresh } = useTaskList();
-  const {
-    draftTask,
-    setDraftTask,
-    createModalOpen,
-    setCreateModalOpen,
-    submitting,
-    error: createError,
-    createAndRunTask,
-  } = useCreateTask({
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const { submitting, error: createError, createAndRunTask } = useCreateTask({
     refreshTasks: refresh,
-    onCreated: (_id) => navigate(`/tasks/${_id}`),
+    onCreated: () => {
+      setCreateModalOpen(false);
+      message.success('任务已创建并启动');
+    },
   });
   const [filterForm] = Form.useForm<TaskListFilterValues>();
 
@@ -186,11 +181,9 @@ export function TaskListPage() {
       </Space>
       <CreateTaskModal
         open={createModalOpen}
-        draftTask={draftTask}
         submitting={submitting}
         error={createError}
         onCancel={() => setCreateModalOpen(false)}
-        onChange={setDraftTask}
         onSubmit={createAndRunTask}
       />
     </AppShell>

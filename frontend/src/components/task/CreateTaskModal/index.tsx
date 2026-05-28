@@ -1,8 +1,7 @@
 import { InboxOutlined } from '@ant-design/icons';
 import { Form, Input, Modal, Radio, Space, Typography, Upload } from 'antd';
-import type { RadioChangeEvent } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { TASK_TYPE_LABELS, TaskType } from '../../../constants/task';
 import type { TaskBrief } from '../../../types';
 import styles from './index.module.less';
@@ -10,62 +9,36 @@ import styles from './index.module.less';
 const { Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
+type CreateTaskFormValues = Omit<TaskBrief, 'productImages'>;
+
 interface CreateTaskModalProps {
   open: boolean;
-  draftTask: TaskBrief;
   submitting: boolean;
   error: string | null;
   onCancel: () => void;
-  onChange: (draftTask: TaskBrief) => void;
-  onSubmit: (files: File[]) => Promise<void> | void;
+  onSubmit: (input: CreateTaskFormValues, files: File[]) => Promise<void> | void;
 }
 
+const INITIAL_VALUES: CreateTaskFormValues = {
+  productName: '',
+  inputPrompt: '',
+  taskType: TaskType.ShortVideo,
+};
+
 export function CreateTaskModal(props: CreateTaskModalProps) {
-  const { open, draftTask, submitting, error, onCancel, onChange, onSubmit } = props;
+  const { open, submitting, error, onCancel, onSubmit } = props;
+  const [form] = Form.useForm<CreateTaskFormValues>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   useEffect(() => {
     if (!open) {
+      form.resetFields();
       setFileList([]);
     }
-  }, [open]);
+  }, [open, form]);
 
-  function handleBeforeUpload() {
-    return false;
-  }
-
-  function handleUploadChange(nextFileList: UploadFile[]) {
-    setFileList(nextFileList.slice(-3));
-  }
-
-  function handleRemove(file: UploadFile) {
-    setFileList((currentFileList) => {
-      return currentFileList.filter((item) => item.uid !== file.uid);
-    });
-  }
-
-  function handleProductNameChange(event: ChangeEvent<HTMLInputElement>) {
-    onChange({
-      ...draftTask,
-      productName: event.target.value,
-    });
-  }
-
-  function handleTaskTypeChange(event: RadioChangeEvent) {
-    onChange({
-      ...draftTask,
-      taskType: event.target.value as TaskType,
-    });
-  }
-
-  function handleInputPromptChange(event: ChangeEvent<HTMLTextAreaElement>) {
-    onChange({
-      ...draftTask,
-      inputPrompt: event.target.value,
-    });
-  }
-
-  function handleSubmit() {
+  async function handleSubmit() {
+    const values = await form.validateFields();
     const files = fileList
       .map((file) => file.originFileObj)
       .filter((file): file is RcFile => Boolean(file));
@@ -74,7 +47,7 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
       return;
     }
 
-    onSubmit(files);
+    await onSubmit(values, files);
   }
 
   return (
@@ -94,14 +67,18 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
         <Paragraph type="secondary" className={styles.description}>
           选择任务类型并输入商品信息后，系统会自动启动对应的内容生成 Agent。
         </Paragraph>
-        <Form layout="vertical">
-          <Form.Item label="任务类型" required>
-            <Radio.Group
-              value={draftTask.taskType}
-              onChange={handleTaskTypeChange}
-              optionType="button"
-              buttonStyle="solid"
-            >
+        <Form<CreateTaskFormValues>
+          form={form}
+          layout="vertical"
+          initialValues={INITIAL_VALUES}
+          requiredMark
+        >
+          <Form.Item
+            label="任务类型"
+            name="taskType"
+            rules={[{ required: true, message: '请选择任务类型' }]}
+          >
+            <Radio.Group optionType="button" buttonStyle="solid">
               <Radio.Button value={TaskType.ShortVideo}>
                 {TASK_TYPE_LABELS[TaskType.ShortVideo]}
               </Radio.Button>
@@ -110,26 +87,23 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
               </Radio.Button>
             </Radio.Group>
           </Form.Item>
-          <Form.Item label="商品名" required name="productName">
-            <Input
-              name="productName"
-              value={draftTask.productName}
-              placeholder="例如：轻薄持妆粉底液"
-              onChange={handleProductNameChange}
-            />
-          </Form.Item>
           <Form.Item
-            label="商品图片"
-            name="productImages"
-            extra="支持 0-3 张图片，建议上传主体清晰的商品图。"
+            label="商品名"
+            name="productName"
+            rules={[{ required: true, message: '请输入商品名' }]}
           >
+            <Input placeholder="例如：轻薄持妆粉底液" />
+          </Form.Item>
+          <Form.Item label="商品图片" extra="支持 0-3 张图片，建议上传主体清晰的商品图。">
             <Upload.Dragger
               accept="image/*"
               multiple
               fileList={fileList}
-              beforeUpload={handleBeforeUpload}
-              onChange={(info) => handleUploadChange(info.fileList)}
-              onRemove={handleRemove}
+              beforeUpload={() => false}
+              onChange={(info) => setFileList(info.fileList.slice(-3))}
+              onRemove={(file) =>
+                setFileList((current) => current.filter((item) => item.uid !== file.uid))
+              }
               maxCount={3}
               listType="picture"
             >
@@ -142,11 +116,8 @@ export function CreateTaskModal(props: CreateTaskModalProps) {
           </Form.Item>
           <Form.Item label="输入的 Prompt" name="inputPrompt" style={{ marginBottom: 0 }}>
             <TextArea
-              name="inputPrompt"
-              value={draftTask.inputPrompt}
               placeholder="例如：偏高级感美妆广告风，突出遮瑕前后对比和上脸质感。"
               autoSize={{ minRows: 4, maxRows: 6 }}
-              onChange={handleInputPromptChange}
             />
           </Form.Item>
         </Form>
