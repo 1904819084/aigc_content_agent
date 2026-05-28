@@ -3,7 +3,7 @@
 基于 LangGraph 的端到端 AIGC 电商内容生产任务平台，支持 **短视频** 与 **图文** 两类任务的多阶段编排、崩溃续跑、QA 自动回溯。
 
 - 后端：Node.js + GuluX (IoC) + LangGraph + MongoDB + Zod
-- 前端：React + TypeScript + Vite + Ant Design + Zustand
+- 前端：React + TypeScript + Vite + Ant Design + ahooks
 - 工程：npm workspaces Monorepo + 共享契约包 `@aigc/shared`
 
 ---
@@ -56,8 +56,7 @@ agent/
       ├─ hooks/
       │  ├─ useTaskList.ts          列表查询：filters useState + ahooks refreshDeps 自动重拉
       │  ├─ useTaskDetail.ts        详情轮询：ahooks pollingInterval + 终态 cancel
-      │  └─ useCreateTask.ts        创建 + 跑任务 mutation（zustand useShallow）
-      ├─ store/                   Zustand 状态机（CreateTaskModal 草稿 / 开关）
+      │  └─ useCreateTask.ts        创建 + 跑任务 mutation（antd Form 托管草稿）
       ├─ services/                REST 客户端（axios + 统一错误）
       └─ constants/ utils/        派生自 shared 的展示常量
 ```
@@ -208,8 +207,8 @@ SubAgentFactory/createLLMStageAgent  ← LLM Agent 通用工厂
 - `Router/router.tsx`：`lazy(() => import('../pages/TaskList'))` + Suspense
 - `hooks/useTaskList.ts`：filters 进 `useState`，`useRequest({ refreshDeps: [filters] })` 自动初始执行 + 变更重拉，避免 ref 隐藏 state
 - `hooks/useTaskDetail.ts`：`useRequest({ pollingInterval: 1500, pollingWhenHidden: false })`，进入终态后 `cancel()` 停轮询，自带 cleanup / 切 id 重置
-- `hooks/useCreateTask.ts`：zustand selector 用 `useShallow` 包裹避免无限循环；mutation 完成后调用 `refreshTasks` 触发列表 `refresh`
-- `store/taskWorkbenchStore.ts`：Zustand —— 当前仅持有 `draftTask + createModalOpen`（建任务弹窗 UI 状态）
+- `hooks/useCreateTask.ts`：纯 mutation hook，签名为 `(input, files) => Promise<void>`，完成后调用 `refreshTasks` 触发列表 `refresh`
+- `components/task/CreateTaskModal`：使用 antd `Form.useForm()` 托管表单态，`Modal` 关闭时通过 `useEffect` 自动 `resetFields`
 - `components/task/StageFlowGraph`：基于 `@xyflow/react` 的阶段流向图
 - `components/task/StageOutputSection`：阶段产物展示（当前依赖 JsonView，后续将引入 Renderer Registry）
 
