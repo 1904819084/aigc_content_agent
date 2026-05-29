@@ -6,6 +6,8 @@ import { TaskStageStatus } from '../constants/task';
 
 const TaskListPage = lazy(() => import('../pages/TaskList/index'));
 const TaskDetailPage = lazy(() => import('../pages/TaskDetail/index'));
+const SubAgentListPage = lazy(() => import('../pages/SubAgentList/index'));
+const SubAgentDetailPage = lazy(() => import('../pages/SubAgentDetail/index'));
 
 export function AppRouter() {
   return (
@@ -20,6 +22,8 @@ export function AppRouter() {
         <Routes>
           <Route path="/" element={<TaskListPage />} />
           <Route path="/tasks/:_id" element={<TaskDetailPage />} />
+          <Route path="/subagents" element={<SubAgentListPage />} />
+          <Route path="/subagents/:name" element={<SubAgentDetailPage />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

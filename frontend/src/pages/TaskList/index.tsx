@@ -1,7 +1,8 @@
-import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { ApiOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Col, DatePicker, Form, Input, Row, Space, Typography, message } from 'antd';
 import type { Dayjs } from 'dayjs';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AppShell } from '../../components/common/AppShell';
 import { PageHero } from '../../components/common/PageHero';
 import { CreateTaskModal } from '../../components/task/CreateTaskModal';
@@ -74,6 +75,11 @@ export function TaskListPage() {
               >
                 创建任务
               </Button>
+              <Link to="/subagents">
+                <Button size="large" icon={<ApiOutlined />}>
+                  SubAgents 配置
+                </Button>
+              </Link>
             </Space>
           }
           extra={
