@@ -17,6 +17,8 @@ agent/
 │     ├─ enums.ts             TaskType / TaskStageName / TaskStatus
 │     ├─ stageResults.ts      各阶段产物类型 + StageOutputMap
 │     ├─ task.ts              Task / TaskStageOutput / TaskListQuery
+│     ├─ subAgent.ts          SubAgentMeta / SubAgentDetail / SubAgentModelConfig
+│     ├─ subAgentRegistry.ts  SubAgent 注册表（前后端共享 SSOT）
 │     ├─ taskDefinitions/     任务拓扑（stage 顺序 + 中文 label）
 │     └─ index.ts             Barrel file（统一入口）
 │
@@ -37,9 +39,10 @@ agent/
 │     │  ├─ taskRecoveryService     启动时崩溃续跑
 │     │  ├─ stageSchemaService      Zod 校验入口
 │     │  ├─ taskDefinitionService   包装 @aigc/shared
+│     │  ├─ subAgentService         SubAgent 列表 / 详情（包装 Fornax PromptHub）
 │     │  └─ assetService
 │     ├─ repositories/          Mongo 持久化（@Injectable）
-│     ├─ controllers/           HTTP 路由
+│     ├─ controllers/           HTTP 路由（task / asset / subAgent）
 │     ├─ middlewares/           Cors / 异常 / 404
 │     ├─ app/bootstrap.ts       @LifecycleHookUnit + didReady（启动后 recovery）
 │     └─ config/                环境配置
@@ -49,14 +52,19 @@ agent/
       ├─ Router/router.tsx        Lazy 路由
       ├─ pages/
       │  ├─ TaskList/             任务列表页
-      │  └─ TaskDetail/           任务详情页（含 StageFlowGraph）
+      │  ├─ TaskDetail/           任务详情页（含 StageFlowGraph）
+      │  ├─ SubAgentList/         SubAgent 卡片网格
+      │  └─ SubAgentDetail/       SubAgent 详情（system/user/raw + 模型配置）
       ├─ components/
       │  ├─ common/               AppShell / PageHero / StatusTag …
-      │  └─ task/                 CreateTaskModal / StageFlowGraph / StageOutputSection / FinalPreview …
+      │  ├─ task/                 CreateTaskModal / StageFlowGraph / StageOutputSection / FinalPreview …
+      │  └─ subagent/             SubAgentCard
       ├─ hooks/
       │  ├─ useTaskList.ts          列表查询：filters useState + ahooks refreshDeps 自动重拉
       │  ├─ useTaskDetail.ts        详情轮询：ahooks pollingInterval + 终态 cancel
-      │  └─ useCreateTask.ts        创建 + 跑任务 mutation（antd Form 托管草稿）
+      │  ├─ useCreateTask.ts        创建 + 跑任务 mutation（antd Form 托管草稿）
+      │  ├─ useSubAgentList.ts      SubAgent 列表
+      │  └─ useSubAgentDetail.ts    SubAgent 详情（实时拉 Fornax）
       ├─ services/                REST 客户端（axios + 统一错误）
       └─ constants/ utils/        派生自 shared 的展示常量
 ```
@@ -170,6 +178,22 @@ SubAgentFactory/createLLMStageAgent  ← LLM Agent 通用工厂
 1. 在 `shared/taskDefinitions/` 加定义文件
 2. 在 `backend/agents/taskGraph/` 加 `createXxxTaskGraph.ts`
 3. 在 `taskRuntime` 注册对应 Supervisor
+
+---
+
+## 4.5 SubAgents 配置中心
+
+前端 `/subagents` 提供 SubAgent 配置预览面板，便于团队审阅每个 Agent 在 Fornax 上挂载的 prompt 模板与模型参数。
+
+- **数据来源**：`@aigc/shared/subAgentRegistry.ts` 是前后端共享的 SSOT，列出 8 个 SubAgent（QA Agent 一份 prompt 服务 image/video/editing 三个 stage，用 `stageNames` 数组承载）
+- **后端接口**（`/api/subagents`）：
+  - `GET /api/subagents` → 返回所有 SubAgentMeta（仅静态元信息）
+  - `GET /api/subagents/:name` → 实时拉 Fornax PromptHub，返回 system / user / 模型配置 / rawPrompt
+- **运行时解析**：
+  - `system` 取 `prompt.system`（Fornax SDK 内置渲染）
+  - `user` 取 `rawPrompt.prompt_text.message_list[0].content`（`user_prompt` 字段已废弃）
+  - `modelConfig` 解析 `rawPrompt.model_config`：name / max_tokens / temperature / top_p / thinking
+- **前端**：列表用 Row+Col 卡片网格 + 红/黄/蓝三色机器人图标轮换；详情页 Tabs 切换 System / User / Raw JSON，并以 Descriptions 展示模型参数
 
 ---
 
